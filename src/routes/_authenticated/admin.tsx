@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { getMyRoles } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +25,22 @@ function AdminLayout() {
     }
   }, [isLoading, data]);
 
+  async function hardSignOut() {
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+    } catch {
+      // Continue and clear local cache anyway.
+    }
+    if (typeof window !== "undefined") {
+      for (const key of Object.keys(window.localStorage)) {
+        if (key.startsWith("sb-") && key.includes("auth-token")) {
+          window.localStorage.removeItem(key);
+        }
+      }
+    }
+    navigate({ to: "/auth", replace: true });
+  }
+
   if (isLoading) {
     return <div className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground">Loading admin…</div>;
   }
@@ -33,7 +50,10 @@ function AdminLayout() {
         <Card className="max-w-md p-6 text-center">
           <h1 className="font-display text-xl font-semibold">Couldn't load admin</h1>
           <p className="mt-2 text-sm text-muted-foreground">{(error as Error).message}</p>
-          <Button className="mt-4" onClick={() => navigate({ to: "/auth" })}>Sign in again</Button>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <Button onClick={() => navigate({ to: "/auth" })}>Sign in again</Button>
+            <Button variant="outline" onClick={hardSignOut}>Sign out</Button>
+          </div>
         </Card>
       </div>
     );
@@ -46,7 +66,10 @@ function AdminLayout() {
           <p className="mt-2 text-sm text-muted-foreground">
             Your account doesn't have an admin role. Ask a Super Admin to grant you access.
           </p>
-          <Button className="mt-4" onClick={() => navigate({ to: "/" })}>Back to site</Button>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <Button onClick={() => navigate({ to: "/" })}>Back to site</Button>
+            <Button variant="outline" onClick={hardSignOut}>Sign out</Button>
+          </div>
         </Card>
       </div>
     );

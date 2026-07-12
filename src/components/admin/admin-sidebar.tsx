@@ -39,7 +39,21 @@ export function AdminSidebar() {
   const nav = useNavigate();
 
   async function signOut() {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+    } catch {
+      // Continue with local cache cleanup even if remote sign-out fails.
+    }
+
+    // Clear any persisted Supabase auth tokens to avoid stale-session lock-in.
+    if (typeof window !== "undefined") {
+      for (const key of Object.keys(window.localStorage)) {
+        if (key.startsWith("sb-") && key.includes("auth-token")) {
+          window.localStorage.removeItem(key);
+        }
+      }
+    }
+
     toast.success("Signed out");
     nav({ to: "/auth", replace: true });
   }
