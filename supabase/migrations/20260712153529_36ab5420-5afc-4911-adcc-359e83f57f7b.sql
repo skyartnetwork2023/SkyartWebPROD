@@ -1,0 +1,3 @@
+ALTER TABLE public.site_sections DROP CONSTRAINT IF EXISTS site_sections_section_check;
+ALTER TABLE public.site_sections ADD CONSTRAINT site_sections_section_check
+  CHECK (section IN ('portfolio','solutions','coverage','faq','packages','services','contact','blog','why'));
