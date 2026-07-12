@@ -29,6 +29,7 @@ type PackageItem = {
   price: number; install: number; down: number; up: number;
   features: string[]; recommended?: boolean;
   duration?: string; duration_label?: string;
+  description?: string;
 };
 
 const DURATION_SUFFIX: Record<string, string> = {
@@ -64,6 +65,9 @@ function PackagesPage() {
       recommended: Boolean(d.recommended),
       duration: (d.duration as string) ?? undefined,
       duration_label: (d.duration_label as string) ?? undefined,
+      description: typeof d.description === "string" && d.description.trim().length > 0
+        ? d.description
+        : undefined,
     };
   });
   const packages: PackageItem[] = dbPackages.length > 0 ? dbPackages : fallbackPackages;
@@ -95,9 +99,9 @@ function PackagesPage() {
                   </Badge>
                 )}
                 <h3 className="font-display text-xl font-semibold">{p.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {tier === "home" ? "Unlimited fiber for your household" : "Symmetrical fiber with SLA"}
-                </p>
+                {p.description && (
+                  <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+                )}
                 <div className="mt-6 flex items-end gap-1">
                   <span className="font-display text-4xl font-bold">{formatTZS(p.price)}</span>
                   <span className="mb-1 text-sm text-muted-foreground">{durationSuffix(p)}</span>

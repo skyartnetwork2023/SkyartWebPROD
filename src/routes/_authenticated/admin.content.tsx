@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Loader2, EyeOff, Eye, Upload, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, EyeOff, Eye, Upload, FileText, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -135,6 +136,7 @@ const FIELDS: Record<SectionName, { title: string; summary: (d: Record<string, u
     summary: (d) => `${(d.name as string) ?? "(unnamed)"}${d.tier ? " · " + d.tier : ""}`,
     fields: [
       { key: "name", label: "Package name", type: "text" },
+      { key: "description", label: "Description (optional)", type: "textarea", placeholder: "Short package summary" },
       { key: "tier", label: "Tier (home / business / hotspot)", type: "text", placeholder: "home" },
       { key: "price", label: "Price (TZS)", type: "number" },
       { key: "duration", label: "Duration (monthly / weekly / daily / hourly / custom)", type: "text", placeholder: "monthly" },
@@ -219,6 +221,7 @@ function SectionManager({ section }: { section: SectionName }) {
     queryFn: () => adminListSection({ data: { section } }),
   });
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const save = useMutation({
     mutationFn: (p: Partial<Row>) =>
@@ -244,15 +247,66 @@ function SectionManager({ section }: { section: SectionName }) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const batchDel = useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) {
+        await deleteSectionItem({ data: { id } });
+      }
+    },
+    onSuccess: () => {
+      toast.success(`Deleted ${selectedIds.size} item${selectedIds.size === 1 ? "" : "s"}`);
+      setSelectedIds(new Set());
+      qc.invalidateQueries({ queryKey: key });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const conf = FIELDS[section];
+  const allIds = (data as Row[]).map((r) => r.id);
+  const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
+  const someSelected = allIds.some((id) => selectedIds.has(id));
+
+  const toggleId = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allIds));
+    }
+  };
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="flex justify-end">
-        <Button onClick={() => setEditing({ sort_order: (data[data.length - 1]?.sort_order ?? 0) + 1, is_published: true, data: {} })}>
-          <Plus className="mr-2 h-4 w-4" /> New {conf.title}
-        </Button>
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-muted-foreground">
+          {selectedIds.size > 0 && `${selectedIds.size} selected`}
+        </div>
+        <div className="flex gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                if (window.confirm(`Delete ${selectedIds.size} item${selectedIds.size === 1 ? "" : "s"}?`)) {
+                  batchDel.mutate(Array.from(selectedIds));
+                }
+              }}
+              disabled={batchDel.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setEditing({ sort_order: (data[data.length - 1]?.sort_order ?? 0) + 1, is_published: true, data: {} })}>
+            <Plus className="mr-2 h-4 w-4" /> New {conf.title}
+          </Button>
+        </div>
       </div>
       <Card>
         {isLoading ? (
@@ -266,10 +320,14 @@ function SectionManager({ section }: { section: SectionName }) {
         ) : (
           <ul className="divide-y">
             {(data as Row[]).map((r) => (
-              <li key={r.id} className="flex items-center justify-between gap-3 p-3">
-                <div className="flex items-center gap-3">
+              <li key={r.id} className="flex items-center justify-between gap-3 p-3 hover:bg-muted/50">
+                <div className="flex items-center gap-3 flex-1">
+                  <Checkbox
+                    checked={selectedIds.has(r.id)}
+                    onCheckedChange={() => toggleId(r.id)}
+                  />
                   <span className="w-8 text-xs text-muted-foreground">#{r.sort_order}</span>
-                  <div>
+                  <div className="flex-1">
                     <div className="font-medium">{conf.summary(r.data)}</div>
                     <div className="text-xs text-muted-foreground line-clamp-1">
                       {Object.entries(r.data)
@@ -279,7 +337,7 @@ function SectionManager({ section }: { section: SectionName }) {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Badge variant={r.is_published ? "default" : "secondary"}>
                     {r.is_published ? <><Eye className="mr-1 h-3 w-3" />Live</> : <><EyeOff className="mr-1 h-3 w-3" />Hidden</>}
                   </Badge>

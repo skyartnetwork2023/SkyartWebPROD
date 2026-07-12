@@ -127,6 +127,24 @@ INSERT INTO public.site_sections (section, sort_order, data, is_published, creat
   'packages',
   6,
   jsonb_build_object(
+    'name', 'Unlimited fiber for your household',
+    'tier', 'unlimited_fiber',
+    'price', 0,
+    'install', 0,
+    'down', 0,
+    'up', 0,
+    'features', jsonb_build_array(),
+    'recommended', false,
+    'duration', 'monthly'
+  ),
+  true,
+  now(),
+  now()
+),
+(
+  'packages',
+  7,
+  jsonb_build_object(
     'name', 'Symmetrical fiber with SLA',
     'tier', 'fiber_sla',
     'price', 0,
