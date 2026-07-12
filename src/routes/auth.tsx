@@ -34,6 +34,36 @@ function AuthPage() {
     });
   }, [navigate, redirectTo]);
 
+  // Handle email confirmation callback with auth parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.slice(1)); // Parse hash parameters
+    const accessToken = params.get("access_token");
+    const refreshToken = params.get("refresh_token");
+    const type = params.get("type");
+
+    if (accessToken && refreshToken && type) {
+      (async () => {
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (!error && data.session) {
+            toast.success("Email confirmed! Signing you in...");
+            // Clear the URL hash
+            window.history.replaceState({}, document.title, window.location.pathname);
+            navigate({ to: redirectTo });
+          } else if (error) {
+            toast.error("Session setup failed: " + error.message);
+          }
+        } catch (err) {
+          toast.error("Error processing email confirmation");
+        }
+      })();
+    }
+  }, [navigate, redirectTo]);
+
   async function signIn(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
