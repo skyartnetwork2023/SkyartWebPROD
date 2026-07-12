@@ -15,7 +15,15 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { listUsersWithRoles, grantRole, revokeRole, adminCreateUser } from "@/lib/cms.functions";
+import {
+  listUsersWithRoles,
+  grantRole,
+  revokeRole,
+  adminCreateUser,
+  listPreapprovedRoles,
+  addPreapprovedRole,
+  removePreapprovedRole,
+} from "@/lib/cms.functions";
 import { getMyRoles } from "@/lib/admin.functions";
 import { exportRowsToPdf } from "@/lib/pdf-export";
 import { toast } from "sonner";
@@ -38,11 +46,19 @@ function UsersAdmin() {
   const [search, setSearch] = useState("");
   const [pending, setPending] = useState<Record<string, RoleV>>({});
   const [addOpen, setAddOpen] = useState(false);
+  const [preEmail, setPreEmail] = useState("");
+  const [preRole, setPreRole] = useState<RoleV>("content_manager");
 
   const { data: me } = useQuery({ queryKey: ["my-roles"], queryFn: () => getMyRoles() });
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: () => listUsersWithRoles(),
+  });
+  const isSuper = me?.isSuperAdmin ?? false;
+  const { data: preapproved = [], isLoading: preLoading } = useQuery({
+    queryKey: ["preapproved-roles"],
+    queryFn: () => listPreapprovedRoles(),
+    enabled: isSuper,
   });
 
   const grant = useMutation({
@@ -55,8 +71,24 @@ function UsersAdmin() {
     onSuccess: () => { toast.success("Role revoked"); qc.invalidateQueries({ queryKey: ["admin-users"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
+  const preAdd = useMutation({
+    mutationFn: (v: { email: string; role: RoleV }) => addPreapprovedRole({ data: v }),
+    onSuccess: () => {
+      toast.success("Pre-approved role added");
+      setPreEmail("");
+      qc.invalidateQueries({ queryKey: ["preapproved-roles"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const preRemove = useMutation({
+    mutationFn: (id: string) => removePreapprovedRole({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Pre-approved role removed");
+      qc.invalidateQueries({ queryKey: ["preapproved-roles"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
-  const isSuper = me?.isSuperAdmin ?? false;
   const items = (data ?? []).filter((u) => {
     const q = search.toLowerCase();
     if (!q) return true;
@@ -107,6 +139,79 @@ function UsersAdmin() {
       <Card className="p-3">
         <Input placeholder="Search name or email…" value={search} onChange={(e) => setSearch(e.target.value)} />
       </Card>
+
+      {isSuper && (
+        <Card className="p-4 space-y-3">
+          <div>
+            <h2 className="font-medium">Pre-approve role by email (before signup)</h2>
+            <p className="text-xs text-muted-foreground">
+              Assign roles to an email in advance. When that email completes signup (Google or email), role is auto-applied.
+            </p>
+          </div>
+          <div className="grid gap-2 md:grid-cols-[1fr_220px_auto]">
+            <Input
+              type="email"
+              value={preEmail}
+              onChange={(e) => setPreEmail(e.target.value)}
+              placeholder="future.user@example.com"
+            />
+            <Select value={preRole} onValueChange={(v: RoleV) => setPreRole(v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={() => preAdd.mutate({ email: preEmail.trim(), role: preRole })}
+              disabled={preAdd.isPending || !preEmail.trim()}
+            >
+              Add pre-approval
+            </Button>
+          </div>
+
+          <div className="rounded-md border">
+            {preLoading ? (
+              <div className="p-3 text-sm text-muted-foreground">Loading pre-approved roles...</div>
+            ) : preapproved.length === 0 ? (
+              <div className="p-3 text-sm text-muted-foreground">No pre-approved roles yet.</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {preapproved.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>{p.email}</TableCell>
+                      <TableCell>{ROLE_LABEL[p.role as RoleV] ?? p.role}</TableCell>
+                      <TableCell>
+                        <Badge variant={p.used_at ? "secondary" : "default"}>
+                          {p.used_at ? "Used" : "Pending"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!!p.used_at || preRemove.isPending}
+                          onClick={() => preRemove.mutate(p.id)}
+                        >
+                          Remove
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </Card>
+      )}
 
       <Card>
         {isLoading ? (

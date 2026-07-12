@@ -255,6 +255,85 @@ export const adminCreateUser = createServerFn({ method: "POST" })
     return { id: userId };
   });
 
+/* ---------------------- PREAPPROVED USER ROLES (EMAIL) --------------------- */
+
+export const listPreapprovedRoles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isSuper, error: rErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "super_admin",
+    });
+    if (rErr) throw new Error(rErr.message);
+    if (!isSuper) throw new Error("Only Super Admins can view pre-approved roles.");
+
+    const { data, error } = await context.supabase
+      .from("preapproved_user_roles")
+      .select("id,email,role,created_at,used_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const addPreapprovedRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ email: z.string().trim().email().max(255), role: z.enum(ROLES) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: isSuper, error: rErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "super_admin",
+    });
+    if (rErr) throw new Error(rErr.message);
+    if (!isSuper) throw new Error("Only Super Admins can pre-approve roles.");
+
+    const { error } = await context.supabase
+      .from("preapproved_user_roles")
+      .insert({
+        email: data.email.toLowerCase(),
+        role: data.role,
+        created_by: context.userId,
+      });
+    if (error) throw new Error(error.message);
+
+    await writeAudit(
+      context.supabase as never,
+      context.userId,
+      actorEmail(context.claims),
+      "preapprove_role",
+      "preapproved_user_role",
+      data.email.toLowerCase(),
+      { role: data.role },
+    );
+    return { ok: true };
+  });
+
+export const removePreapprovedRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: isSuper, error: rErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "super_admin",
+    });
+    if (rErr) throw new Error(rErr.message);
+    if (!isSuper) throw new Error("Only Super Admins can remove pre-approved roles.");
+
+    const { error } = await context.supabase.from("preapproved_user_roles").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await writeAudit(
+      context.supabase as never,
+      context.userId,
+      actorEmail(context.claims),
+      "remove_preapproved_role",
+      "preapproved_user_role",
+      data.id,
+    );
+    return { ok: true };
+  });
+
 /* ---------------------------- SITEMAP SUPPORT ---------------------------- */
 
 // Public server function used by /sitemap.xml — returns published slugs only.
