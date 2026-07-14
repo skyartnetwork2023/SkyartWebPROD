@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Pencil, Trash2, Loader2, EyeOff, Eye, Upload, FileText, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -530,19 +530,31 @@ function CsvField({
   onChange: (arr: string[]) => void;
 }) {
   const [raw, setRaw] = useState(value.join(", "));
+
+  useEffect(() => {
+    setRaw(value.join(", "));
+  }, [value]);
+
+  const parse = (next: string) =>
+    next
+      .split(/[\n,;]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
   return (
     <div>
       <Label>{label}</Label>
-      <Input
+      <Textarea
+        rows={3}
         placeholder={placeholder}
         value={raw}
         onChange={(e) => {
           const next = e.target.value;
           setRaw(next);
-          onChange(next.split(",").map((s) => s.trim()).filter(Boolean));
+          onChange(parse(next));
         }}
       />
-      <p className="mt-1 text-xs text-muted-foreground">Separate with commas.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Separate with commas, semicolons, or new lines.</p>
     </div>
   );
 }

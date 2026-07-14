@@ -51,6 +51,13 @@ const empty: FormState = {
   tags: [], seo_title: null, seo_description: null, status: "draft",
 };
 
+function parseListInput(value: string) {
+  return value
+    .split(/[\n,;]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 function ProductEditor() {
   const { id } = useParams({ from: "/_authenticated/admin/products/$id" });
   const isNew = id === "new";
@@ -66,6 +73,8 @@ function ProductEditor() {
 
   const [form, setForm] = useState<FormState>(empty);
   const [savedId, setSavedId] = useState<string | null>(isNew ? null : id);
+  const [featuresInput, setFeaturesInput] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
 
   useEffect(() => {
     if (!isNew && productQ.data) {
@@ -83,7 +92,12 @@ function ProductEditor() {
         tags: p.tags ?? [], seo_title: p.seo_title, seo_description: p.seo_description,
         status: p.status as FormState["status"],
       });
+      setFeaturesInput(((p.features ?? []) as string[]).join("\n"));
+      setTagsInput((p.tags ?? []).join(", "));
       setSavedId(p.id);
+    } else if (isNew) {
+      setFeaturesInput("");
+      setTagsInput("");
     }
   }, [isNew, productQ.data]);
 
@@ -190,9 +204,14 @@ function ProductEditor() {
               <Label>Features (one per line)</Label>
               <Textarea
                 rows={4}
-                value={form.features.join("\n")}
-                onChange={(e) => setForm((f) => ({ ...f, features: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) }))}
+                value={featuresInput}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setFeaturesInput(next);
+                  setForm((f) => ({ ...f, features: parseListInput(next) }));
+                }}
               />
+              <p className="text-xs text-muted-foreground">Supports new lines, commas, or semicolons as separators.</p>
             </div>
 
             <div className="md:col-span-2 space-y-2">
@@ -226,8 +245,12 @@ function ProductEditor() {
             <div>
               <Label>Tags (comma-separated)</Label>
               <Input
-                value={form.tags.join(", ")}
-                onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }))}
+                value={tagsInput}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setTagsInput(next);
+                  setForm((f) => ({ ...f, tags: parseListInput(next) }));
+                }}
               />
             </div>
 
