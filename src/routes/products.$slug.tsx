@@ -126,7 +126,8 @@ function ProductDetail() {
     }
   }
 
-  const waMessage = encodeURIComponent(`Hi, I'm interested in ${p.name} (${window.location.href}). Please share pricing and availability.`);
+  const productUrl = shareUrl || `/products/${p.slug}`;
+  const waMessage = encodeURIComponent(`Hi, I'm interested in ${p.name} (${productUrl}). Please share pricing and availability.`);
   const waUrl = `https://wa.me/${localizedSite.phone.replace(/[^\d]/g, "")}?text=${waMessage}`;
 
   return (

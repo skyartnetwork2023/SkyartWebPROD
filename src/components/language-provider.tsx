@@ -50,6 +50,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
 export function useLanguage() {
   const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within a LanguageProvider");
+  if (!ctx) {
+    return {
+      locale: DEFAULT_LOCALE,
+      setLocale: () => undefined,
+      messages: messages[DEFAULT_LOCALE],
+    };
+  }
   return ctx;
 }
