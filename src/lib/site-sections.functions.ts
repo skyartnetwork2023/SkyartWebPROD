@@ -14,10 +14,22 @@ export type SectionName = (typeof SECTIONS)[number];
 
 const actorEmail = (claims: unknown) => (claims as { email?: string } | null)?.email ?? null;
 
+function getPublicSupabaseEnv() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    console.warn("[Supabase] Missing SUPABASE_URL/SUPABASE_PUBLISHABLE_KEY for site sections public reads.");
+    return null;
+  }
+  return { url, key };
+}
+
 function publicClient() {
+  const env = getPublicSupabaseEnv();
+  if (!env) return null;
   return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    env.url,
+    env.key,
     { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
   );
 }
@@ -29,7 +41,9 @@ export const listSectionPublic = createServerFn({ method: "GET" })
     z.object({ section: z.enum(SECTIONS) }).parse(input),
   )
   .handler(async ({ data }) => {
-    const { data: rows, error } = await publicClient()
+    const supabase = publicClient();
+    if (!supabase) return [];
+    const { data: rows, error } = await supabase
       .from("site_sections")
       .select("id,section,sort_order,is_published,data")
       .eq("section", data.section)

@@ -228,9 +228,9 @@ function ApplicationForm({ jobId, jobTitle, onDone }: { jobId: string; jobTitle:
       setUploading(false);
     }
 
-        <h3 className="font-display text-lg font-semibold">{isSw ? `Omba nafasi ya ${jobTitle}` : `Apply for ${jobTitle}`}</h3>
+    submit.mutate({
       data: {
-          <Label htmlFor="full_name">{isSw ? "Jina kamili" : "Full name"} *</Label>
+        job_id: jobId,
         full_name,
         email,
         phone: String(fd.get("phone") || "").trim() || null,
@@ -238,36 +238,36 @@ function ApplicationForm({ jobId, jobTitle, onDone }: { jobId: string; jobTitle:
         portfolio_url: String(fd.get("portfolio_url") || "").trim() || null,
         cv_path,
       },
-          <Label htmlFor="phone">{isSw ? "Simu" : "Phone"}</Label>
+    });
   };
 
   const busy = uploading || submit.isPending;
-          <Label htmlFor="portfolio_url">{isSw ? "Portfolio / LinkedIn" : "Portfolio / LinkedIn"}</Label>
+
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
-      <h3 className="font-display text-lg font-semibold">Apply for {jobTitle}</h3>
-          <Label htmlFor="cover_letter">{isSw ? "Barua ya maombi" : "Cover letter"}</Label>
-          <Textarea id="cover_letter" name="cover_letter" rows={4} maxLength={5000} placeholder={isSw ? "Tuambie kuhusu wewe..." : "Tell us about yourself..."} />
+      <h3 className="font-display text-lg font-semibold">{isSw ? `Omba nafasi ya ${jobTitle}` : `Apply for ${jobTitle}`}</h3>
+      <div className="grid gap-1.5">
+        <Label htmlFor="full_name">{isSw ? "Jina kamili" : "Full name"} *</Label>
         <Input id="full_name" name="full_name" required maxLength={120} />
       </div>
-          <Label>{isSw ? "CV / Resume (PDF, DOCX)" : "CV / Resume (PDF, DOCX)"}</Label>
+      <div className="grid gap-1.5">
         <Label htmlFor="email">Email *</Label>
         <Input id="email" name="email" type="email" required maxLength={255} />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="phone">Phone</Label>
+        <Label htmlFor="phone">{isSw ? "Simu" : "Phone"}</Label>
         <Input id="phone" name="phone" type="tel" maxLength={40} />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="portfolio_url">Portfolio / LinkedIn</Label>
+        <Label htmlFor="portfolio_url">{isSw ? "Portfolio / LinkedIn" : "Portfolio / LinkedIn"}</Label>
         <Input id="portfolio_url" name="portfolio_url" type="url" placeholder="https://…" />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="cover_letter">Cover letter</Label>
-        <Textarea id="cover_letter" name="cover_letter" rows={4} maxLength={5000} placeholder="Tell us about yourself…" />
+        <Label htmlFor="cover_letter">{isSw ? "Barua ya maombi" : "Cover letter"}</Label>
+        <Textarea id="cover_letter" name="cover_letter" rows={4} maxLength={5000} placeholder={isSw ? "Tuambie kuhusu wewe..." : "Tell us about yourself..."} />
       </div>
       <div className="grid gap-1.5">
-        <Label>CV / Resume (PDF, DOCX)</Label>
+        <Label>{isSw ? "CV / Resume (PDF, DOCX)" : "CV / Resume (PDF, DOCX)"}</Label>
         <input
           ref={fileRef}
           type="file"

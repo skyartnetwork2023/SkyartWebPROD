@@ -7,10 +7,22 @@ import { writeAudit } from "@/lib/audit";
 
 const actorEmail = (claims: unknown) => (claims as { email?: string } | null)?.email ?? null;
 
+function getPublicSupabaseEnv() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    console.warn("[Supabase] Missing SUPABASE_URL/SUPABASE_PUBLISHABLE_KEY for jobs public reads.");
+    return null;
+  }
+  return { url, key };
+}
+
 function publicClient() {
+  const env = getPublicSupabaseEnv();
+  if (!env) return null;
   return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    env.url,
+    env.key,
     { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
   );
 }
@@ -30,6 +42,7 @@ export const listPublishedJobs = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const supabase = publicClient();
+    if (!supabase) return { items: [], departments: [] as string[], locations: [] as string[] };
     let q = supabase
       .from("jobs")
       .select("id,title,slug,department,employment_type,location,application_deadline,number_of_positions,created_at")
@@ -54,7 +67,9 @@ export const listPublishedJobs = createServerFn({ method: "GET" })
 export const getJobBySlug = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ slug: z.string() }).parse(input))
   .handler(async ({ data }) => {
-    const { data: job, error } = await publicClient()
+    const supabase = publicClient();
+    if (!supabase) return null;
+    const { data: job, error } = await supabase
       .from("jobs")
       .select("*")
       .eq("slug", data.slug)

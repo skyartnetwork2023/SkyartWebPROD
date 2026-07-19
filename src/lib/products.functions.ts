@@ -7,10 +7,22 @@ import { writeAudit } from "@/lib/audit";
 
 const actorEmail = (claims: unknown) => (claims as { email?: string } | null)?.email ?? null;
 
+function getPublicSupabaseEnv() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    console.warn("[Supabase] Missing SUPABASE_URL/SUPABASE_PUBLISHABLE_KEY for products public reads.");
+    return null;
+  }
+  return { url, key };
+}
+
 function publicClient() {
+  const env = getPublicSupabaseEnv();
+  if (!env) return null;
   return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    env.url,
+    env.key,
     { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
   );
 }
@@ -18,7 +30,9 @@ function publicClient() {
 /* ------------------------------ PUBLIC READS ------------------------------ */
 
 export const listCategoriesPublic = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await publicClient()
+  const supabase = publicClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
     .from("product_categories")
     .select("id,name,slug,description,parent_id,sort_order")
     .eq("is_active", true)
@@ -43,6 +57,9 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const supabase = publicClient();
+    if (!supabase) {
+      return { items: [], total: 0, brands: [] as string[] };
+    }
     let categoryId: string | null = null;
     if (data.categorySlug) {
       const { data: cat } = await supabase
@@ -94,6 +111,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ slug: z.string() }).parse(input))
   .handler(async ({ data }) => {
     const supabase = publicClient();
+    if (!supabase) return null;
     const { data: product, error } = await supabase
       .from("products")
       .select(

@@ -341,9 +341,15 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 export const listPublicSitemapSlugs = createServerFn({ method: "GET" }).handler(async () => {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    console.warn("[Supabase] Missing SUPABASE_URL/SUPABASE_PUBLISHABLE_KEY for sitemap public reads.");
+    return { products: [], jobs: [] };
+  }
   const supabase = createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    url,
+    key,
     { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
   );
   const [{ data: products }, { data: jobs }] = await Promise.all([
