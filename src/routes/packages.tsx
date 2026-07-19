@@ -7,8 +7,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { packages as fallbackPackages, formatTZS, site, streetHotspotPackages } from "@/lib/site-data";
+import { formatTZS, site } from "@/lib/site-data";
 import { listSectionPublic } from "@/lib/site-sections.functions";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/packages")({
   head: () => ({
@@ -46,6 +48,13 @@ function durationSuffix(p: { duration?: string; duration_label?: string }) {
 }
 
 function PackagesPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const {
+    packages: fallbackPackages,
+    streetHotspotPackages,
+  } = useSiteContent();
+
   const [tier, setTier] = useState<"home" | "business" | "hotspot">("home");
   const { data: rows } = useQuery({
     queryKey: ["public-section", "packages"],
@@ -75,16 +84,18 @@ function PackagesPage() {
 
   return (
     <>
-      <PageHero eyebrow="Packages" title="Real prices. Real speeds. Really.">
-        No promotional bait, no throttling surprises, no fine print. Pick a plan, upgrade or downgrade anytime.
+      <PageHero eyebrow={isSw ? "Vifurushi" : "Packages"} title={isSw ? "Bei halisi. Kasi halisi." : "Real prices. Real speeds. Really."}>
+        {isSw
+          ? "Hakuna matangazo ya kuvutia tu, hakuna kupunguza kasi kwa siri. Chagua kifurushi na badili muda wowote."
+          : "No promotional bait, no throttling surprises, no fine print. Pick a plan, upgrade or downgrade anytime."}
       </PageHero>
 
       <section className="section-py">
         <div className="container-page">
           <Tabs value={tier} onValueChange={(v) => setTier(v as "home" | "business" | "hotspot")} className="mx-auto max-w-lg">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="home">Home</TabsTrigger>
-              <TabsTrigger value="business">Business</TabsTrigger>
+              <TabsTrigger value="home">{isSw ? "Nyumbani" : "Home"}</TabsTrigger>
+              <TabsTrigger value="business">{isSw ? "Biashara" : "Business"}</TabsTrigger>
               <TabsTrigger value="hotspot">Hotspot</TabsTrigger>
             </TabsList>
             <TabsContent value={tier} />
@@ -95,7 +106,7 @@ function PackagesPage() {
               <Card key={p.name} className={`relative flex flex-col p-6 ${p.recommended ? "border-primary shadow-[var(--shadow-elegant)]" : ""}`}>
                 {p.recommended && (
                   <Badge className="absolute -top-3 left-6 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground">
-                    Most popular
+                    {isSw ? "Maarufu zaidi" : "Most popular"}
                   </Badge>
                 )}
                 <h3 className="font-display text-xl font-semibold">{p.name}</h3>
@@ -107,12 +118,12 @@ function PackagesPage() {
                   <span className="mb-1 text-sm text-muted-foreground">{durationSuffix(p)}</span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Installation: <span className="font-medium text-foreground">{p.install === 0 ? "Free" : formatTZS(p.install)}</span>
+                  {isSw ? "Ufungaji" : "Installation"}: <span className="font-medium text-foreground">{p.install === 0 ? (isSw ? "Bure" : "Free") : formatTZS(p.install)}</span>
                 </p>
                 <div className="mt-4 flex gap-4 border-y py-3 text-sm">
-                  <div><span className="font-semibold text-primary">{p.down}</span> <span className="text-muted-foreground">Mbps down</span></div>
+                  <div><span className="font-semibold text-primary">{p.down}</span> <span className="text-muted-foreground">{isSw ? "Mbps kupakua" : "Mbps down"}</span></div>
                   <div className="h-full w-px bg-border" />
-                  <div><span className="font-semibold text-primary">{p.up}</span> <span className="text-muted-foreground">Mbps up</span></div>
+                  <div><span className="font-semibold text-primary">{p.up}</span> <span className="text-muted-foreground">{isSw ? "Mbps kupakia" : "Mbps up"}</span></div>
                 </div>
                 <ul className="mt-4 space-y-2 text-sm">
                   {p.features.map((f) => (
@@ -120,7 +131,7 @@ function PackagesPage() {
                   ))}
                 </ul>
                 <Button asChild className="mt-6" variant={p.recommended ? "default" : "outline"}>
-                  <Link to="/contact">Apply now</Link>
+                  <Link to="/contact">{isSw ? "Omba sasa" : "Apply now"}</Link>
                 </Button>
               </Card>
             ))}
@@ -128,20 +139,20 @@ function PackagesPage() {
 
           <section className="mt-16 rounded-2xl border bg-card/60 p-6 shadow-sm">
             <div className="flex flex-col gap-2">
-              <h2 className="font-display text-2xl font-semibold">Street Hotspot Packages</h2>
-              <p className="text-sm text-muted-foreground">Flexible prepaid options for quick, affordable internet access.</p>
+              <h2 className="font-display text-2xl font-semibold">{isSw ? "Vifurushi vya Hotspot ya Mtaani" : "Street Hotspot Packages"}</h2>
+              <p className="text-sm text-muted-foreground">{isSw ? "Chaguo za kulipia kabla kwa intaneti ya haraka na nafuu." : "Flexible prepaid options for quick, affordable internet access."}</p>
             </div>
 
             <div className="mt-6 overflow-hidden rounded-xl border">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
                   <tr>
-                    <th className="px-4 py-3">Package</th>
-                    <th className="px-4 py-3">Cost (TSH)</th>
+                    <th className="px-4 py-3">{isSw ? "Kifurushi" : "Package"}</th>
+                    <th className="px-4 py-3">{isSw ? "Gharama (TSH)" : "Cost (TSH)"}</th>
                     <th className="px-4 py-3">Data</th>
-                    <th className="px-4 py-3">Speed (Up to)</th>
-                    <th className="px-4 py-3">Devices</th>
-                    <th className="px-4 py-3">Duration</th>
+                    <th className="px-4 py-3">{isSw ? "Kasi (Hadi)" : "Speed (Up to)"}</th>
+                    <th className="px-4 py-3">{isSw ? "Vifaa" : "Devices"}</th>
+                    <th className="px-4 py-3">{isSw ? "Muda" : "Duration"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -161,8 +172,8 @@ function PackagesPage() {
           </section>
 
           <p className="mt-10 text-center text-sm text-muted-foreground">
-            All prices exclusive of 18% VAT. Business plans include static IP allocation.{" "}
-            <Link to="/faq" className="text-primary underline underline-offset-2">Read the FAQ</Link>
+            {isSw ? "Bei zote hazijajumuisha VAT ya 18%. Vifurushi vya biashara vinajumuisha static IP." : "All prices exclusive of 18% VAT. Business plans include static IP allocation."}{" "}
+            <Link to="/faq" className="text-primary underline underline-offset-2">{isSw ? "Soma Maswali" : "Read the FAQ"}</Link>
           </p>
         </div>
       </section>

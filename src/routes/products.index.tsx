@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listPublishedProducts, listCategoriesPublic } from "@/lib/products.functions";
 import { site } from "@/lib/site-data";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/products/")({
   head: () => ({
@@ -26,6 +27,8 @@ export const Route = createFileRoute("/products/")({
 });
 
 function ProductsPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
   const [search, setSearch] = useState("");
   const [categorySlug, setCategorySlug] = useState("");
   const [brand, setBrand] = useState("");
@@ -46,38 +49,40 @@ function ProductsPage() {
 
   return (
     <>
-      <PageHero eyebrow="Catalog" title="Networking equipment & connectivity gear">
-        Enterprise-grade routers, switches, wireless access points and fiber components — sourced, stocked and supported locally.
+      <PageHero eyebrow={isSw ? "Katalogi" : "Catalog"} title={isSw ? "Vifaa vya mtandao na muunganisho" : "Networking equipment & connectivity gear"}>
+        {isSw
+          ? "Router, switch, access point na vifaa vya fiber vya kiwango cha biashara, vimepatikana na kusaidiwa hapa hapa nchini."
+          : "Enterprise-grade routers, switches, wireless access points and fiber components - sourced, stocked and supported locally."}
       </PageHero>
       <section className="container-page py-10">
         <Card className="mb-6 p-4">
           <div className="grid gap-3 md:grid-cols-4">
             <div className="relative md:col-span-2">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search products…" className="pl-8" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              <Input placeholder={isSw ? "Tafuta bidhaa..." : "Search products..."} className="pl-8" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
             </div>
             <Select value={categorySlug || "all"} onValueChange={(v) => { setCategorySlug(v === "all" ? "" : v); setPage(1); }}>
-              <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={isSw ? "Kategoria" : "Category"} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="all">{isSw ? "Kategoria zote" : "All categories"}</SelectItem>
                 {(catsQ.data ?? []).map((c) => <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={brand || "all"} onValueChange={(v) => { setBrand(v === "all" ? "" : v); setPage(1); }}>
-              <SelectTrigger><SelectValue placeholder="Brand" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={isSw ? "Chapa" : "Brand"} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All brands</SelectItem>
+                <SelectItem value="all">{isSw ? "Chapa zote" : "All brands"}</SelectItem>
                 {brands.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">{total} products</p>
+            <p className="text-sm text-muted-foreground">{isSw ? `${total} bidhaa` : `${total} products`}</p>
             <Select value={sort} onValueChange={(v: "newest" | "name" | "featured") => setSort(v)}>
               <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="featured">Featured first</SelectItem>
+                <SelectItem value="newest">{isSw ? "Mpya zaidi" : "Newest"}</SelectItem>
+                <SelectItem value="featured">{isSw ? "Maalum kwanza" : "Featured first"}</SelectItem>
                 <SelectItem value="name">Name (A–Z)</SelectItem>
               </SelectContent>
             </Select>
@@ -93,8 +98,8 @@ function ProductsPage() {
         ) : items.length === 0 ? (
           <Card className="flex flex-col items-center justify-center gap-3 p-16 text-center">
             <PackageIcon className="h-10 w-10 text-muted-foreground" />
-            <h3 className="font-display text-lg font-semibold">No products found</h3>
-            <p className="text-sm text-muted-foreground">Try adjusting your filters or search terms.</p>
+            <h3 className="font-display text-lg font-semibold">{isSw ? "Hakuna bidhaa zilizopatikana" : "No products found"}</h3>
+            <p className="text-sm text-muted-foreground">{isSw ? "Jaribu kurekebisha vichujio au maneno ya utafutaji." : "Try adjusting your filters or search terms."}</p>
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -108,8 +113,8 @@ function ProductsPage() {
                       <div className="flex h-full items-center justify-center text-muted-foreground"><PackageIcon className="h-10 w-10" /></div>
                     )}
                     <div className="absolute left-2 top-2 flex flex-wrap gap-1">
-                      {p.is_featured && <Badge className="bg-primary"><Star className="mr-1 h-3 w-3" />Featured</Badge>}
-                      {p.is_new_arrival && <Badge className="bg-emerald-500 text-white"><Sparkles className="mr-1 h-3 w-3" />New</Badge>}
+                      {p.is_featured && <Badge className="bg-primary"><Star className="mr-1 h-3 w-3" />{isSw ? "Maalum" : "Featured"}</Badge>}
+                      {p.is_new_arrival && <Badge className="bg-emerald-500 text-white"><Sparkles className="mr-1 h-3 w-3" />{isSw ? "Mpya" : "New"}</Badge>}
                     </div>
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-4">
@@ -120,7 +125,7 @@ function ProductsPage() {
                       {p.price ? (
                         <span className="font-semibold">{p.currency} {Number(p.price).toLocaleString()}</span>
                       ) : (
-                        <span className="text-sm text-muted-foreground">Request quote</span>
+                        <span className="text-sm text-muted-foreground">{isSw ? "Omba bei" : "Request quote"}</span>
                       )}
                       <Badge variant="outline" className="capitalize">{p.availability.replace("_", " ")}</Badge>
                     </div>
@@ -133,9 +138,9 @@ function ProductsPage() {
 
         {totalPages > 1 && (
           <div className="mt-8 flex items-center justify-center gap-2">
-            <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-            <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-            <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+            <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>{isSw ? "Nyuma" : "Previous"}</Button>
+            <span className="text-sm text-muted-foreground">{isSw ? `Ukurasa ${page} kati ya ${totalPages}` : `Page ${page} of ${totalPages}`}</span>
+            <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>{isSw ? "Mbele" : "Next"}</Button>
           </div>
         )}
       </section>

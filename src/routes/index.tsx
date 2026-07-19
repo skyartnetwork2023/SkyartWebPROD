@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/section-heading";
-import { services, packages, stats, customerSegments, technologies, partners, posts, formatTZS, site } from "@/lib/site-data";
+import { formatTZS, site } from "@/lib/site-data";
 import { listSectionPublic } from "@/lib/site-sections.functions";
 import { iconByName } from "@/lib/site-icons";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 import heroImg from "@/assets/hero-fiber.jpg";
 
 export const Route = createFileRoute("/")({
@@ -28,6 +30,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { services, packages, stats, customerSegments, technologies, posts, site } = useSiteContent();
   const featured = services.slice(0, 6);
   const previewPackages = packages.filter((p) => p.tier === "home");
   const latestPosts = posts.slice(0, 3);
@@ -41,10 +46,10 @@ function Home() {
         return { Icon: iconByName(d.icon, Gauge), title: d.title ?? "", body: d.body ?? "" };
       })
     : [
-        { Icon: Gauge, title: "Fast wireless connectivity", body: "Built for smooth browsing, video calls and everyday productivity." },
-        { Icon: ShieldCheck, title: "Secure and scalable network", body: "Designed to support both current needs and future growth." },
-        { Icon: Headphones, title: "Local customer support", body: "Friendly guidance and dependable assistance from a team that knows the market." },
-        { Icon: Zap, title: "Energy-efficient design", body: "Infrastructure planned for performance, resilience and responsible operation." },
+        { Icon: Gauge, title: isSw ? "Muunganisho wa wireless wa kasi" : "Fast wireless connectivity", body: isSw ? "Umejengwa kwa matumizi laini ya intaneti, simu za video na kazi za kila siku." : "Built for smooth browsing, video calls and everyday productivity." },
+        { Icon: ShieldCheck, title: isSw ? "Mtandao salama unaopanuka" : "Secure and scalable network", body: isSw ? "Umeundwa kuhudumia mahitaji ya sasa na ya baadaye." : "Designed to support both current needs and future growth." },
+        { Icon: Headphones, title: isSw ? "Msaada wa karibu kwa mteja" : "Local customer support", body: isSw ? "Mwongozo wa kirafiki na msaada wa kuaminika kutoka timu inayojua soko." : "Friendly guidance and dependable assistance from a team that knows the market." },
+        { Icon: Zap, title: isSw ? "Ubunifu wa kuokoa nishati" : "Energy-efficient design", body: isSw ? "Miundombinu iliyopangwa kwa utendaji, uimara na uwajibikaji." : "Infrastructure planned for performance, resilience and responsible operation." },
       ];
 
   return (
@@ -65,20 +70,22 @@ function Home() {
         <div className="container-page relative pt-20 pb-24 md:pt-32 md:pb-32">
           <div className="mx-auto max-w-3xl text-center">
             <Badge variant="secondary" className="mb-5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-primary">
-              <Zap className="mr-1 h-3 w-3" /> Fast, reliable and affordable internet for Tanzania
+              <Zap className="mr-1 h-3 w-3" /> {isSw ? "Intaneti ya haraka, ya kuaminika na nafuu Tanzania" : "Fast, reliable and affordable internet for Tanzania"}
             </Badge>
             <h1 className="font-display text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl md:leading-[1.05]">
-              Fast, Reliable &amp; Affordable Internet for <span className="gradient-text">Homes and Businesses</span>
+              {isSw ? "Intaneti ya Haraka, ya Kuaminika na Nafuu kwa" : "Fast, Reliable &amp; Affordable Internet for"} <span className="gradient-text">{isSw ? "Nyumba na Biashara" : "Homes and Businesses"}</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground md:text-xl">
-              {site.name} delivers high-quality broadband connectivity through modern wireless technologies, helping individuals, businesses and institutions stay connected with dependable internet services.
+              {isSw
+                ? `${site.name} hutoa broadband ya ubora wa juu kwa teknolojia za kisasa za wireless, kusaidia watu binafsi, biashara na taasisi kubaki zimeunganishwa.`
+                : `${site.name} delivers high-quality broadband connectivity through modern wireless technologies, helping individuals, businesses and institutions stay connected with dependable internet services.`}
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-12 px-7 shadow-[var(--shadow-elegant)]">
-                <Link to="/contact">Get Connected <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link to="/contact">{isSw ? "Unganishwa" : "Get Connected"} <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 px-7">
-                <Link to="/contact">Request a Quote</Link>
+                <Link to="/contact">{isSw ? "Omba Bei" : "Request a Quote"}</Link>
               </Button>
             </div>
           </div>
@@ -99,20 +106,22 @@ function Home() {
         <div className="container-page grid gap-10 md:grid-cols-2 md:items-center">
           <div>
             <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">
-              About {site.name}
+              {isSw ? "Kuhusu" : "About"} {site.name}
             </span>
             <h2 className="mt-4 font-display text-3xl font-bold tracking-tight md:text-4xl">
-              Connecting communities and empowering Tanzania through dependable wireless internet.
+              {isSw ? "Kuunganisha jamii na kuiwezesha Tanzania kwa intaneti ya kuaminika." : "Connecting communities and empowering Tanzania through dependable wireless internet."}
             </h2>
             <p className="mt-4 text-muted-foreground">
-              SkyArt Networks Limited is a Tanzanian wireless internet service provider dedicated to delivering affordable, reliable and high-performance broadband solutions to communities where traditional wired infrastructure is limited or unavailable.
+              {isSw
+                ? "SkyArt Networks Limited ni mtoa huduma wa intaneti wa wireless nchini Tanzania anayelenga kutoa broadband nafuu, ya kuaminika na yenye utendaji wa juu kwa jamii zenye miundombinu hafifu ya waya."
+                : "SkyArt Networks Limited is a Tanzanian wireless internet service provider dedicated to delivering affordable, reliable and high-performance broadband solutions to communities where traditional wired infrastructure is limited or unavailable."}
             </p>
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {[
-                "Affordable internet packages",
-                "Reliable network performance",
-                "Professional technical support",
-                "Modern wireless infrastructure",
+                isSw ? "Vifurushi vya intaneti nafuu" : "Affordable internet packages",
+                isSw ? "Utendaji wa mtandao unaotegemewa" : "Reliable network performance",
+                isSw ? "Msaada wa kiufundi wa kitaalamu" : "Professional technical support",
+                isSw ? "Miundombinu ya kisasa ya wireless" : "Modern wireless infrastructure",
               ].map((item) => (
                 <div key={item} className="flex items-start gap-2 text-sm">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -121,7 +130,7 @@ function Home() {
               ))}
             </div>
             <Button asChild className="mt-8" variant="outline">
-              <Link to="/about">Learn more about us <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link to="/about">{isSw ? "Jifunze zaidi kuhusu sisi" : "Learn more about us"} <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -139,8 +148,10 @@ function Home() {
       {/* SERVICES */}
       <section className="section-py bg-surface">
         <div className="container-page">
-          <SectionHeading eyebrow="Services" title="Connectivity solutions for homes, businesses and communities">
-            From residential broadband to fixed wireless and public hotspot deployments, SkyArt Networks Limited helps customers stay connected with dependable service.
+          <SectionHeading eyebrow={isSw ? "Huduma" : "Services"} title={isSw ? "Suluhisho za muunganisho kwa nyumba, biashara na jamii" : "Connectivity solutions for homes, businesses and communities"}>
+            {isSw
+              ? "Kuanzia broadband ya nyumbani hadi fixed wireless na hotspot za umma, SkyArt Networks Limited inasaidia wateja kubaki wameunganishwa."
+              : "From residential broadband to fixed wireless and public hotspot deployments, SkyArt Networks Limited helps customers stay connected with dependable service."}
           </SectionHeading>
           <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map(({ slug, title, icon: Icon, blurb }) => (
@@ -154,7 +165,7 @@ function Home() {
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Button asChild variant="outline"><Link to="/services">All services <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+            <Button asChild variant="outline"><Link to="/services">{isSw ? "Huduma zote" : "All services"} <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
           </div>
         </div>
       </section>
@@ -162,27 +173,29 @@ function Home() {
       {/* PACKAGES */}
       <section className="section-py bg-background">
         <div className="container-page">
-          <SectionHeading eyebrow="Flexible Packages" title="Internet plans built around real needs">
-            Choose a connection that fits your home, business or community requirements with transparent, customer-focused options.
+          <SectionHeading eyebrow={isSw ? "Vifurushi vinavyonyumbulika" : "Flexible Packages"} title={isSw ? "Mipango ya intaneti inayolingana na mahitaji halisi" : "Internet plans built around real needs"}>
+            {isSw
+              ? "Chagua muunganisho unaofaa mahitaji ya nyumba, biashara au jamii yako kwa uwazi kamili."
+              : "Choose a connection that fits your home, business or community requirements with transparent, customer-focused options."}
           </SectionHeading>
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
             {previewPackages.map((p) => (
               <Card key={p.name} className={`relative flex flex-col p-6 ${p.recommended ? "border-primary shadow-[var(--shadow-elegant)]" : ""}`}>
                 {p.recommended && (
                   <Badge className="absolute -top-3 left-6 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground">
-                    Most popular
+                    {isSw ? "Maarufu zaidi" : "Most popular"}
                   </Badge>
                 )}
                 <h3 className="font-display text-xl font-semibold">{p.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Unlimited fiber</p>
+                <p className="mt-1 text-sm text-muted-foreground">{isSw ? "Fiber isiyo na kikomo" : "Unlimited fiber"}</p>
                 <div className="mt-6 flex items-end gap-1">
                   <span className="font-display text-4xl font-bold">{formatTZS(p.price)}</span>
                   <span className="mb-1 text-sm text-muted-foreground">/mo</span>
                 </div>
                 <div className="mt-4 flex gap-4 border-y py-3 text-sm">
-                  <div><span className="font-semibold text-primary">{p.down}</span> <span className="text-muted-foreground">Mbps down</span></div>
+                  <div><span className="font-semibold text-primary">{p.down}</span> <span className="text-muted-foreground">{isSw ? "Mbps kupakua" : "Mbps down"}</span></div>
                   <div className="h-full w-px bg-border" />
-                  <div><span className="font-semibold text-primary">{p.up}</span> <span className="text-muted-foreground">Mbps up</span></div>
+                  <div><span className="font-semibold text-primary">{p.up}</span> <span className="text-muted-foreground">{isSw ? "Mbps kupakia" : "Mbps up"}</span></div>
                 </div>
                 <ul className="mt-4 space-y-2 text-sm">
                   {p.features.map((f) => (
@@ -190,13 +203,13 @@ function Home() {
                   ))}
                 </ul>
                 <Button asChild className="mt-6" variant={p.recommended ? "default" : "outline"}>
-                  <Link to="/contact">Apply now</Link>
+                  <Link to="/contact">{isSw ? "Omba sasa" : "Apply now"}</Link>
                 </Button>
               </Card>
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Button asChild variant="ghost"><Link to="/packages">See business packages <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+            <Button asChild variant="ghost"><Link to="/packages">{isSw ? "Angalia vifurushi vya biashara" : "See business packages"} <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
           </div>
         </div>
       </section>
@@ -204,7 +217,7 @@ function Home() {
       {/* CUSTOMER SEGMENTS */}
       <section className="section-py bg-surface">
         <div className="container-page">
-          <SectionHeading eyebrow="Customer Segments" title="Connectivity designed for the people and organizations we serve" />
+          <SectionHeading eyebrow={isSw ? "Makundi ya wateja" : "Customer Segments"} title={isSw ? "Muunganisho ulioundwa kwa watu na taasisi tunazohudumia" : "Connectivity designed for the people and organizations we serve"} />
           <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {customerSegments.map(({ title, icon: Icon, blurb }) => (
               <Card key={title} className="p-6">
@@ -223,7 +236,7 @@ function Home() {
       <section className="border-y bg-background py-12">
         <div className="container-page">
           <p className="text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Technology we use
+            {isSw ? "Teknolojia tunazotumia" : "Technology we use"}
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-4">
             {technologies.map((item) => (
@@ -238,7 +251,7 @@ function Home() {
       {/* BLOG */}
       <section className="section-py bg-background">
         <div className="container-page">
-          <SectionHeading eyebrow="Blog & News" title="Fresh from our team" />
+          <SectionHeading eyebrow={isSw ? "Blogu na Habari" : "Blog & News"} title={isSw ? "Habari mpya kutoka timu yetu" : "Fresh from our team"} />
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {latestPosts.map((p) => (
               <Card key={p.slug} className="group overflow-hidden p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-card)]">
@@ -250,7 +263,7 @@ function Home() {
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Button asChild variant="outline"><Link to="/blog">Read the blog <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+            <Button asChild variant="outline"><Link to="/blog">{isSw ? "Soma blogu" : "Read the blog"} <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
           </div>
         </div>
       </section>
@@ -262,13 +275,13 @@ function Home() {
             <div className="pointer-events-none absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, white, transparent 40%)" }} />
             <div className="relative grid gap-8 md:grid-cols-2 md:items-center">
               <div>
-                <h2 className="font-display text-3xl font-bold md:text-4xl">Ready to connect your home or business?</h2>
-                <p className="mt-3 text-primary-foreground/80">Speak with the SkyArt Networks Limited team about your connectivity needs and next steps.</p>
+                <h2 className="font-display text-3xl font-bold md:text-4xl">{isSw ? "Uko tayari kuunganisha nyumba au biashara yako?" : "Ready to connect your home or business?"}</h2>
+                <p className="mt-3 text-primary-foreground/80">{isSw ? "Zungumza na timu ya SkyArt Networks Limited kuhusu mahitaji yako ya muunganisho na hatua zinazofuata." : "Speak with the SkyArt Networks Limited team about your connectivity needs and next steps."}</p>
               </div>
               <div className="flex flex-wrap gap-3 md:justify-end">
-                <Button asChild size="lg" variant="secondary"><Link to="/contact">Request a quote</Link></Button>
+                <Button asChild size="lg" variant="secondary"><Link to="/contact">{isSw ? "Omba bei" : "Request a quote"}</Link></Button>
                 <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
-                  <Link to="/packages">See packages</Link>
+                  <Link to="/packages">{isSw ? "Angalia vifurushi" : "See packages"}</Link>
                 </Button>
               </div>
             </div>

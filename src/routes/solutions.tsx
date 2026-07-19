@@ -5,8 +5,10 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { solutions as fallback, site } from "@/lib/site-data";
+import { site } from "@/lib/site-data";
 import { listSectionPublic } from "@/lib/site-sections.functions";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/solutions")({
   head: () => ({
@@ -25,6 +27,10 @@ export const Route = createFileRoute("/solutions")({
 type Item = { title: string; challenge: string; answer: string; Icon: typeof Sparkles };
 
 function SolutionsPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { solutions: fallback } = useSiteContent();
+
   const { data: rows } = useQuery({
     queryKey: ["public-section", "solutions"],
     queryFn: () => listSectionPublic({ data: { section: "solutions" } }),
@@ -44,8 +50,13 @@ function SolutionsPage() {
 
   return (
     <>
-      <PageHero eyebrow="Solutions" title="Networks built for how your industry actually works.">
-        The problems a hotel faces aren't the ones a hospital faces. We design connectivity around your reality, not the other way around.
+      <PageHero
+        eyebrow={isSw ? "Suluhisho" : "Solutions"}
+        title={isSw ? "Mitandao iliyoundwa kulingana na sekta yako." : "Networks built for how your industry actually works."}
+      >
+        {isSw
+          ? "Changamoto za hoteli si sawa na za hospitali. Tunatengeneza muunganisho kulingana na uhalisia wako."
+          : "The problems a hotel faces aren't the ones a hospital faces. We design connectivity around your reality, not the other way around."}
       </PageHero>
 
       <section className="section-py">
@@ -58,23 +69,23 @@ function SolutionsPage() {
               <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
               <div className="mt-3 space-y-3 text-sm">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Challenge</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{isSw ? "Changamoto" : "Challenge"}</p>
                   <p className="mt-1 text-foreground">{challenge}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">How we solve it</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">{isSw ? "Tunavyoitatua" : "How we solve it"}</p>
                   <p className="mt-1 text-muted-foreground">{answer}</p>
                 </div>
               </div>
               <Link to="/contact" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:gap-2 transition-all">
-                Discuss my project <ArrowRight className="h-3.5 w-3.5" />
+                {isSw ? "Jadili mradi wangu" : "Discuss my project"} <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Card>
           ))}
         </div>
 
         <div className="container-page mt-14 text-center">
-          <Button asChild size="lg"><Link to="/contact">Get a tailored proposal</Link></Button>
+          <Button asChild size="lg"><Link to="/contact">{isSw ? "Pata pendekezo maalum" : "Get a tailored proposal"}</Link></Button>
         </div>
       </section>
     </>

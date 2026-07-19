@@ -7,9 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { coverage as fallback, site } from "@/lib/site-data";
+import { site } from "@/lib/site-data";
 import { listSectionPublic } from "@/lib/site-sections.functions";
 import { toast } from "sonner";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/coverage")({
   head: () => ({
@@ -28,6 +30,10 @@ export const Route = createFileRoute("/coverage")({
 type Region = { region: string; type: string; availability: string; cities: string[] };
 
 function CoveragePage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { coverage: fallback } = useSiteContent();
+
   const [query, setQuery] = useState("");
   const [checked, setChecked] = useState<null | { area: string; found: boolean }>(null);
 
@@ -62,31 +68,36 @@ function CoveragePage() {
     if (!area) return;
     const found = coverage.some((r) => r.region.toLowerCase().includes(area.toLowerCase()) || r.cities.some((c) => c.toLowerCase().includes(area.toLowerCase())));
     setChecked({ area, found });
-    if (found) toast.success(`Great news — ${area} is in our coverage footprint!`);
-    else toast.info(`We're not live in ${area} yet — we've noted your interest.`);
+    if (found) toast.success(isSw ? `Habari njema - ${area} ipo kwenye maeneo tunapofikia.` : `Great news - ${area} is in our coverage footprint!`);
+    else toast.info(isSw ? `Bado hatujafika ${area} - tumehifadhi taarifa yako.` : `We're not live in ${area} yet - we've noted your interest.`);
   };
 
   return (
     <>
-      <PageHero eyebrow="Coverage" title="Expanding reliable connectivity across Dar es Salaam.">
-        SkyArt Networks Limited is currently focused on network rollout in Kinondoni, Kigamboni and Ubungo, with plans to extend services across Tanzania.
+      <PageHero
+        eyebrow={isSw ? "Ufikivu" : "Coverage"}
+        title={isSw ? "Tunapanua muunganisho wa kuaminika Dar es Salaam." : "Expanding reliable connectivity across Dar es Salaam."}
+      >
+        {isSw
+          ? "SkyArt Networks Limited kwa sasa inalenga usambazaji wa mtandao Kinondoni, Kigamboni na Ubungo, kwa mpango wa kupanua huduma Tanzania nzima."
+          : "SkyArt Networks Limited is currently focused on network rollout in Kinondoni, Kigamboni and Ubungo, with plans to extend services across Tanzania."}
       </PageHero>
 
       <section className="section-py">
         <div className="container-page grid gap-8 lg:grid-cols-[1fr_1.5fr]">
           <div>
             <Card className="p-6">
-              <h2 className="font-display text-xl font-semibold">Check my address</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Enter a neighbourhood, district or landmark to check availability.</p>
+              <h2 className="font-display text-xl font-semibold">{isSw ? "Angalia eneo langu" : "Check my address"}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{isSw ? "Weka mtaa, wilaya au alama ya eneo kuangalia upatikanaji." : "Enter a neighbourhood, district or landmark to check availability."}</p>
               <form onSubmit={onCheck} className="mt-4 flex gap-2">
-                <Input name="area" placeholder="e.g. Masaki, Nairobi CBD" required />
-                <Button type="submit">Check</Button>
+                <Input name="area" placeholder={isSw ? "mf. Masaki, Kariakoo" : "e.g. Masaki, Nairobi CBD"} required />
+                <Button type="submit">{isSw ? "Angalia" : "Check"}</Button>
               </form>
               {checked && (
                 <div className={`mt-4 rounded-lg border p-3 text-sm ${checked.found ? "border-success/40 bg-success/10 text-success" : "border-primary/40 bg-primary/10 text-primary"}`}>
                   {checked.found
-                    ? `${checked.area} is in our footprint. A sales agent will reach out with next steps.`
-                    : `We're not live in ${checked.area} yet — thanks for registering interest.`}
+                    ? (isSw ? `${checked.area} ipo kwenye maeneo tunapofikia. Timu ya mauzo itakupigia kwa hatua zinazofuata.` : `${checked.area} is in our footprint. A sales agent will reach out with next steps.`)
+                    : (isSw ? `Bado hatujafika ${checked.area} - asante kwa kuonyesha nia.` : `We're not live in ${checked.area} yet - thanks for registering interest.`)}
                 </div>
               )}
             </Card>
@@ -95,8 +106,8 @@ function CoveragePage() {
               <div className="flex h-full items-center justify-center text-center">
                 <div>
                   <MapPin className="mx-auto h-10 w-10 text-primary" />
-                  <p className="mt-3 font-display text-lg font-semibold">Coverage map</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Map integration can be added here when service rollout details are finalized.</p>
+                  <p className="mt-3 font-display text-lg font-semibold">{isSw ? "Ramani ya ufikivu" : "Coverage map"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{isSw ? "Uunganisho wa ramani unaweza kuwekwa hapa baada ya maeneo kukamilishwa." : "Map integration can be added here when service rollout details are finalized."}</p>
                 </div>
               </div>
             </Card>
@@ -105,7 +116,7 @@ function CoveragePage() {
           <div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter cities and neighbourhoods…" className="pl-9" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isSw ? "Chuja miji na mitaa..." : "Filter cities and neighbourhoods..."} className="pl-9" />
             </div>
             <div className="mt-6 space-y-4">
               {filtered.map((r) => (
@@ -126,7 +137,7 @@ function CoveragePage() {
               ))}
               {filtered.length === 0 && (
                 <Card className="p-8 text-center text-sm text-muted-foreground">
-                  No matches — try a different search, or check with a sales agent.
+                  {isSw ? "Hakuna matokeo. Jaribu utafutaji mwingine au wasiliana na timu ya mauzo." : "No matches - try a different search, or check with a sales agent."}
                 </Card>
               )}
             </div>

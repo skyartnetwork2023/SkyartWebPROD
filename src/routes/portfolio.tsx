@@ -6,8 +6,10 @@ import { PageHero } from "@/components/page-hero";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { portfolio as fallback, site } from "@/lib/site-data";
+import { site } from "@/lib/site-data";
 import { listSectionPublic } from "@/lib/site-sections.functions";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -26,6 +28,10 @@ export const Route = createFileRoute("/portfolio")({
 type Item = { title: string; industry: string; tech: string[]; location: string; date: string; result: string; cover?: string };
 
 function PortfolioPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { portfolio: fallback } = useSiteContent();
+
   const { data: rows } = useQuery({
     queryKey: ["public-section", "portfolio"],
     queryFn: () => listSectionPublic({ data: { section: "portfolio" } }),
@@ -44,14 +50,17 @@ function PortfolioPage() {
   }, [rows]);
 
 
-  const industries = useMemo(() => ["All", ...Array.from(new Set(portfolio.map((p) => p.industry)))], [portfolio]);
-  const [filter, setFilter] = useState<string>("All");
-  const items = filter === "All" ? portfolio : portfolio.filter((p) => p.industry === filter);
+  const allLabel = isSw ? "Yote" : "All";
+  const industries = useMemo(() => [allLabel, ...Array.from(new Set(portfolio.map((p) => p.industry)))], [portfolio, allLabel]);
+  const [filter, setFilter] = useState<string>(allLabel);
+  const items = filter === allLabel ? portfolio : portfolio.filter((p) => p.industry === filter);
 
   return (
     <>
-      <PageHero eyebrow="Portfolio" title="A snapshot of our growing connectivity work.">
-        SkyArt Networks Limited delivers dependable broadband solutions for homes, businesses, public spaces and institutions across Tanzania.
+      <PageHero eyebrow={isSw ? "Miradi" : "Portfolio"} title={isSw ? "Muhtasari wa kazi yetu ya muunganisho inayokua." : "A snapshot of our growing connectivity work."}>
+        {isSw
+          ? "SkyArt Networks Limited hutoa suluhisho za broadband za kuaminika kwa nyumba, biashara, maeneo ya umma na taasisi kote Tanzania."
+          : "SkyArt Networks Limited delivers dependable broadband solutions for homes, businesses, public spaces and institutions across Tanzania."}
       </PageHero>
 
       <section className="section-py">

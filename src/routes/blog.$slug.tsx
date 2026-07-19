@@ -4,8 +4,22 @@ import { ArrowLeft, FileText } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { posts as fallbackPosts, site } from "@/lib/site-data";
+import { site } from "@/lib/site-data";
 import { listSectionPublic } from "@/lib/site-sections.functions";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
+
+function BlogNotFoundComponent() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+
+  return (
+    <div className="container-page section-py text-center">
+      <h1 className="font-display text-2xl font-semibold">{isSw ? "Makala halijapatikana" : "Article not found"}</h1>
+      <Button asChild className="mt-4"><Link to="/blog">{isSw ? "Rudi kwenye blogu" : "Back to blog"}</Link></Button>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/blog/$slug")({
   head: () => ({
@@ -15,12 +29,7 @@ export const Route = createFileRoute("/blog/$slug")({
     ],
   }),
   component: BlogArticle,
-  notFoundComponent: () => (
-    <div className="container-page section-py text-center">
-      <h1 className="font-display text-2xl font-semibold">Article not found</h1>
-      <Button asChild className="mt-4"><Link to="/blog">Back to blog</Link></Button>
-    </div>
-  ),
+  notFoundComponent: BlogNotFoundComponent,
   errorComponent: ({ error }) => (
     <div className="container-page section-py text-center text-sm text-destructive">{error.message}</div>
   ),
@@ -39,6 +48,10 @@ type Post = {
 };
 
 function BlogArticle() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { posts: fallbackPosts } = useSiteContent();
+
   const { slug } = Route.useParams();
   const { data: rows, isLoading } = useQuery({
     queryKey: ["public-section", "blog"],
@@ -62,7 +75,7 @@ function BlogArticle() {
   const posts: Post[] = dbPosts.length > 0 ? dbPosts : (fallbackPosts as Post[]);
   const post = posts.find((p) => p.slug === slug);
 
-  if (isLoading) return <div className="container-page section-py">Loading…</div>;
+  if (isLoading) return <div className="container-page section-py">{isSw ? "Inapakia..." : "Loading..."}</div>;
   if (!post) throw notFound();
 
   const hasDoc = !!post.document_url?.trim();
@@ -75,7 +88,7 @@ function BlogArticle() {
       <section className="section-py">
         <div className="container-page max-w-3xl">
           <Link to="/blog" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
-            <ArrowLeft className="h-4 w-4" /> Back to blog
+            <ArrowLeft className="h-4 w-4" /> {isSw ? "Rudi kwenye blogu" : "Back to blog"}
           </Link>
           {post.cover && (
             <img src={post.cover} alt={post.title} className="mt-6 aspect-[16/9] w-full rounded-xl object-cover" />
@@ -91,7 +104,7 @@ function BlogArticle() {
               <div className="mt-6">
                 <Button asChild variant="outline">
                   <a href={post.document_url} target="_blank" rel="noopener noreferrer">
-                    <FileText className="mr-2 h-4 w-4" /> Open PDF in new tab
+                    <FileText className="mr-2 h-4 w-4" /> {isSw ? "Fungua PDF kwenye tab mpya" : "Open PDF in new tab"}
                   </a>
                 </Button>
               </div>
@@ -111,7 +124,7 @@ function BlogArticle() {
             </>
           ) : (
             <article className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
-              {(post.body?.trim() ? post.body : post.excerpt || "This article has no content yet.")
+              {(post.body?.trim() ? post.body : post.excerpt || (isSw ? "Makala hili bado halina maudhui." : "This article has no content yet."))
                 .split(/\n{2,}/)
                 .map((para, i) => (
                   <p key={i} className="whitespace-pre-wrap">{para}</p>

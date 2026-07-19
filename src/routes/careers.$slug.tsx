@@ -15,6 +15,7 @@ import { getJobBySlug, createCvUploadUrl, submitApplication } from "@/lib/jobs.f
 import { supabase } from "@/integrations/supabase/client";
 import { site } from "@/lib/site-data";
 import { toast } from "sonner";
+import { useLanguage } from "@/components/language-provider";
 
 const jobQueryOptions = (slug: string) => ({
   queryKey: ["job", slug],
@@ -62,15 +63,27 @@ export const Route = createFileRoute("/careers/$slug")({
     };
   },
   component: JobDetail,
-  errorComponent: () => <div className="p-12 text-center text-muted-foreground">Failed to load role.</div>,
-  notFoundComponent: () => (
-    <div className="p-16 text-center">
-      <h1 className="font-display text-2xl font-bold">Role not found</h1>
-      <p className="text-muted-foreground mt-2">It may have been closed or removed.</p>
-      <Button asChild className="mt-4"><Link to="/careers">Back to careers</Link></Button>
-    </div>
-  ),
+  errorComponent: CareerErrorComponent,
+  notFoundComponent: CareerNotFoundComponent,
 });
+
+function CareerErrorComponent() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  return <div className="p-12 text-center text-muted-foreground">{isSw ? "Imeshindikana kupakia nafasi." : "Failed to load role."}</div>;
+}
+
+function CareerNotFoundComponent() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  return (
+    <div className="p-16 text-center">
+      <h1 className="font-display text-2xl font-bold">{isSw ? "Nafasi haijapatikana" : "Role not found"}</h1>
+      <p className="text-muted-foreground mt-2">{isSw ? "Inawezekana nafasi imefungwa au kuondolewa." : "It may have been closed or removed."}</p>
+      <Button asChild className="mt-4"><Link to="/careers">{isSw ? "Rudi kwenye ajira" : "Back to careers"}</Link></Button>
+    </div>
+  );
+}
 
 const EMPLOYMENT_LABELS: Record<string, string> = {
   full_time: "Full-time", part_time: "Part-time", contract: "Contract",
@@ -78,6 +91,8 @@ const EMPLOYMENT_LABELS: Record<string, string> = {
 };
 
 function JobDetail() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
   const j = Route.useLoaderData();
   const [submitted, setSubmitted] = useState(false);
 
@@ -85,7 +100,7 @@ function JobDetail() {
     <div className="section-py">
       <div className="container-page">
         <Link to="/careers" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary">
-          <ArrowLeft className="h-3 w-3" /> All open roles
+          <ArrowLeft className="h-3 w-3" /> {isSw ? "Nafasi zote wazi" : "All open roles"}
         </Link>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-3">
@@ -96,8 +111,8 @@ function JobDetail() {
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1"><Briefcase className="h-4 w-4" /> {EMPLOYMENT_LABELS[j.employment_type] ?? j.employment_type}</span>
                 {j.location && <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {j.location}</span>}
-                {j.number_of_positions > 1 && <span className="flex items-center gap-1"><Users className="h-4 w-4" /> {j.number_of_positions} openings</span>}
-                {j.application_deadline && <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> Apply by {new Date(j.application_deadline).toLocaleDateString()}</span>}
+                {j.number_of_positions > 1 && <span className="flex items-center gap-1"><Users className="h-4 w-4" /> {j.number_of_positions} {isSw ? "nafasi" : "openings"}</span>}
+                {j.application_deadline && <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {isSw ? "Omba kabla ya" : "Apply by"} {new Date(j.application_deadline).toLocaleDateString()}</span>}
               </div>
             </div>
 
@@ -105,13 +120,13 @@ function JobDetail() {
               <Card className="p-5 grid gap-3 sm:grid-cols-2">
                 {j.experience_required && (
                   <div>
-                    <div className="text-xs font-semibold uppercase text-muted-foreground">Experience</div>
+                    <div className="text-xs font-semibold uppercase text-muted-foreground">{isSw ? "Uzoefu" : "Experience"}</div>
                     <div className="mt-1 text-sm">{j.experience_required}</div>
                   </div>
                 )}
                 {j.education && (
                   <div>
-                    <div className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1"><GraduationCap className="h-3 w-3" /> Education</div>
+                    <div className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1"><GraduationCap className="h-3 w-3" /> {isSw ? "Elimu" : "Education"}</div>
                     <div className="mt-1 text-sm">{j.education}</div>
                   </div>
                 )}
@@ -120,19 +135,19 @@ function JobDetail() {
 
             {j.responsibilities && (
               <section>
-                <h2 className="font-display text-xl font-semibold">Responsibilities</h2>
+                <h2 className="font-display text-xl font-semibold">{isSw ? "Majukumu" : "Responsibilities"}</h2>
                 <div className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">{j.responsibilities}</div>
               </section>
             )}
             {j.requirements && (
               <section>
-                <h2 className="font-display text-xl font-semibold">Requirements</h2>
+                <h2 className="font-display text-xl font-semibold">{isSw ? "Mahitaji" : "Requirements"}</h2>
                 <div className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">{j.requirements}</div>
               </section>
             )}
             {j.skills?.length ? (
               <section>
-                <h2 className="font-display text-xl font-semibold">Skills</h2>
+                <h2 className="font-display text-xl font-semibold">{isSw ? "Ujuzi" : "Skills"}</h2>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {j.skills.map((s: string) => <Badge key={s} variant="secondary">{s}</Badge>)}
                 </div>
@@ -140,7 +155,7 @@ function JobDetail() {
             ) : null}
             {j.benefits && (
               <section>
-                <h2 className="font-display text-xl font-semibold flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> Benefits</h2>
+                <h2 className="font-display text-xl font-semibold flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> {isSw ? "Manufaa" : "Benefits"}</h2>
                 <div className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">{j.benefits}</div>
               </section>
             )}
@@ -151,11 +166,11 @@ function JobDetail() {
               {submitted ? (
                 <div className="text-center py-6">
                   <CheckCircle2 className="h-10 w-10 text-primary mx-auto" />
-                  <h3 className="mt-3 font-display text-lg font-semibold">Application received</h3>
+                  <h3 className="mt-3 font-display text-lg font-semibold">{isSw ? "Maombi yamepokelewa" : "Application received"}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Thanks for applying to {j.title}. Our people team will review your application and be in touch.
+                    {isSw ? `Asante kwa kuomba nafasi ya ${j.title}. Timu yetu itakagua maombi yako na kuwasiliana nawe.` : `Thanks for applying to ${j.title}. Our people team will review your application and be in touch.`}
                   </p>
-                  <Button asChild variant="outline" className="mt-4"><Link to="/careers">Explore more roles</Link></Button>
+                  <Button asChild variant="outline" className="mt-4"><Link to="/careers">{isSw ? "Angalia nafasi zaidi" : "Explore more roles"}</Link></Button>
                 </div>
               ) : (
                 <ApplicationForm jobId={j.id} jobTitle={j.title} onDone={() => setSubmitted(true)} />
@@ -169,6 +184,8 @@ function JobDetail() {
 }
 
 function ApplicationForm({ jobId, jobTitle, onDone }: { jobId: string; jobTitle: string; onDone: () => void }) {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -185,14 +202,14 @@ function ApplicationForm({ jobId, jobTitle, onDone }: { jobId: string; jobTitle:
     const full_name = String(fd.get("full_name") || "").trim();
     const email = String(fd.get("email") || "").trim();
     if (!full_name || !email) {
-      toast.error("Please provide your name and email.");
+      toast.error(isSw ? "Tafadhali weka jina na barua pepe." : "Please provide your name and email.");
       return;
     }
 
     let cv_path: string | null = null;
     if (file) {
       if (file.size > 8 * 1024 * 1024) {
-        toast.error("CV must be under 8 MB.");
+        toast.error(isSw ? "CV inapaswa kuwa chini ya MB 8." : "CV must be under 8 MB.");
         return;
       }
       setUploading(true);
@@ -204,16 +221,16 @@ function ApplicationForm({ jobId, jobTitle, onDone }: { jobId: string; jobTitle:
         if (error) throw error;
         cv_path = path;
       } catch (err) {
-        toast.error((err as Error).message || "CV upload failed");
+        toast.error((err as Error).message || (isSw ? "Upakiaji wa CV umeshindikana" : "CV upload failed"));
         setUploading(false);
         return;
       }
       setUploading(false);
     }
 
-    submit.mutate({
+        <h3 className="font-display text-lg font-semibold">{isSw ? `Omba nafasi ya ${jobTitle}` : `Apply for ${jobTitle}`}</h3>
       data: {
-        job_id: jobId,
+          <Label htmlFor="full_name">{isSw ? "Jina kamili" : "Full name"} *</Label>
         full_name,
         email,
         phone: String(fd.get("phone") || "").trim() || null,
@@ -221,19 +238,19 @@ function ApplicationForm({ jobId, jobTitle, onDone }: { jobId: string; jobTitle:
         portfolio_url: String(fd.get("portfolio_url") || "").trim() || null,
         cv_path,
       },
-    });
+          <Label htmlFor="phone">{isSw ? "Simu" : "Phone"}</Label>
   };
 
   const busy = uploading || submit.isPending;
-
+          <Label htmlFor="portfolio_url">{isSw ? "Portfolio / LinkedIn" : "Portfolio / LinkedIn"}</Label>
   return (
     <form onSubmit={onSubmit} className="grid gap-3">
       <h3 className="font-display text-lg font-semibold">Apply for {jobTitle}</h3>
-      <div className="grid gap-1.5">
-        <Label htmlFor="full_name">Full name *</Label>
+          <Label htmlFor="cover_letter">{isSw ? "Barua ya maombi" : "Cover letter"}</Label>
+          <Textarea id="cover_letter" name="cover_letter" rows={4} maxLength={5000} placeholder={isSw ? "Tuambie kuhusu wewe..." : "Tell us about yourself..."} />
         <Input id="full_name" name="full_name" required maxLength={120} />
       </div>
-      <div className="grid gap-1.5">
+          <Label>{isSw ? "CV / Resume (PDF, DOCX)" : "CV / Resume (PDF, DOCX)"}</Label>
         <Label htmlFor="email">Email *</Label>
         <Input id="email" name="email" type="email" required maxLength={255} />
       </div>
@@ -260,13 +277,13 @@ function ApplicationForm({ jobId, jobTitle, onDone }: { jobId: string; jobTitle:
         />
         <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="justify-start">
           <Upload className="mr-2 h-4 w-4" />
-          {file ? file.name : "Choose file"}
+          {file ? file.name : (isSw ? "Chagua faili" : "Choose file")}
         </Button>
-        <p className="text-xs text-muted-foreground">Max 8 MB.</p>
+        <p className="text-xs text-muted-foreground">{isSw ? "Kiwango cha juu MB 8." : "Max 8 MB."}</p>
       </div>
       <Button type="submit" size="lg" className="mt-2" disabled={busy}>
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {uploading ? "Uploading CV…" : submit.isPending ? "Submitting…" : "Submit application"}
+        {uploading ? (isSw ? "Inapakia CV..." : "Uploading CV...") : submit.isPending ? (isSw ? "Inatuma..." : "Submitting...") : (isSw ? "Tuma maombi" : "Submit application")}
       </Button>
     </form>
   );

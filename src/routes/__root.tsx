@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LanguageProvider, useLanguage } from "@/components/language-provider";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ScrollToTop } from "@/components/scroll-to-top";
@@ -22,17 +23,19 @@ import { Button } from "@/components/ui/button";
 import { site } from "@/lib/site-data";
 
 function NotFoundComponent() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
   return (
     <div className="flex min-h-[80vh] items-center justify-center bg-hero-radial px-4">
       <div className="max-w-md text-center">
         <p className="font-display text-8xl font-bold gradient-text">404</p>
-        <h1 className="mt-4 font-display text-2xl font-semibold">Page not found</h1>
+        <h1 className="mt-4 font-display text-2xl font-semibold">{isSw ? "Ukurasa haujapatikana" : "Page not found"}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          {isSw ? "Ukurasa unaoutafuta haupo au umehamishwa." : "The page you're looking for doesn't exist or has been moved."}
         </p>
         <div className="mt-6 flex justify-center gap-2">
-          <Button asChild><Link to="/">Go home</Link></Button>
-          <Button asChild variant="outline"><Link to="/contact">Contact support</Link></Button>
+          <Button asChild><Link to="/">{isSw ? "Rudi nyumbani" : "Go home"}</Link></Button>
+          <Button asChild variant="outline"><Link to="/contact">{isSw ? "Wasiliana na msaada" : "Contact support"}</Link></Button>
         </div>
       </div>
     </div>
@@ -40,6 +43,8 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -51,14 +56,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="max-w-md text-center">
         <p className="font-display text-7xl font-bold gradient-text">500</p>
         <h1 className="mt-4 font-display text-2xl font-semibold">
-          Something went wrong on our end
+          {isSw ? "Kuna hitilafu upande wetu" : "Something went wrong on our end"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Our team has been notified. Try refreshing, or head back home.
+          {isSw ? "Timu yetu imejulishwa. Jaribu ku-refresh au rudi nyumbani." : "Our team has been notified. Try refreshing, or head back home."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <Button onClick={() => { router.invalidate(); reset(); }}>Try again</Button>
-          <Button asChild variant="outline"><a href="/">Go home</a></Button>
+          <Button onClick={() => { router.invalidate(); reset(); }}>{isSw ? "Jaribu tena" : "Try again"}</Button>
+          <Button asChild variant="outline"><a href="/">{isSw ? "Rudi nyumbani" : "Go home"}</a></Button>
         </div>
       </div>
     </div>
@@ -152,22 +157,24 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        {isChromeless ? (
-          <Outlet />
-        ) : (
-          <div className="flex min-h-dvh flex-col">
-            <SiteHeader />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <SiteFooter />
-          </div>
-        )}
-        <ScrollToTop />
-        <CookieBanner />
-        <Toaster richColors position="top-right" />
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          {isChromeless ? (
+            <Outlet />
+          ) : (
+            <div className="flex min-h-dvh flex-col">
+              <SiteHeader />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <SiteFooter />
+            </div>
+          )}
+          <ScrollToTop />
+          <CookieBanner />
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

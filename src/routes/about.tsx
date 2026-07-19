@@ -4,7 +4,9 @@ import { PageHero } from "@/components/page-hero";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/section-heading";
-import { values, partners, site } from "@/lib/site-data";
+import { site } from "@/lib/site-data";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -20,17 +22,31 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
 });
 
-const highlights = [
-  { title: "Our mission", body: "To deliver fast, affordable and reliable wireless internet, empowering underserved communities across Tanzania through robust infrastructure and locally crafted connectivity solutions." },
-  { title: "Our vision", body: "To become Tanzania’s most trusted and innovative internet service provider, connecting every corner and every home with affordable, high-quality internet." },
-  { title: "Our commitment", body: "To expand connectivity across Tanzania while maintaining exceptional service quality, customer satisfaction and long-term network resilience." },
-];
-
 function AboutPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { values } = useSiteContent();
+  const highlights = isSw
+    ? [
+        { title: "Dhamira yetu", body: "Kutoa intaneti ya wireless ya haraka, nafuu na ya kuaminika kwa kuziwezesha jamii zisizohudumiwa vya kutosha Tanzania." },
+        { title: "Maono yetu", body: "Kuwa mtoa huduma wa intaneti anayeaminika zaidi na mwenye ubunifu Tanzania, tukifikia kila kona na kila nyumba." },
+        { title: "Ahadi yetu", body: "Kupanua muunganisho Tanzania huku tukidumisha ubora wa huduma, kuridhika kwa wateja na uimara wa mtandao kwa muda mrefu." },
+      ]
+    : [
+        { title: "Our mission", body: "To deliver fast, affordable and reliable wireless internet, empowering underserved communities across Tanzania through robust infrastructure and locally crafted connectivity solutions." },
+        { title: "Our vision", body: "To become Tanzania's most trusted and innovative internet service provider, connecting every corner and every home with affordable, high-quality internet." },
+        { title: "Our commitment", body: "To expand connectivity across Tanzania while maintaining exceptional service quality, customer satisfaction and long-term network resilience." },
+      ];
+
   return (
     <>
-      <PageHero eyebrow="About us" title="Connecting communities with dependable internet access.">
-        SkyArt Networks Limited is a Tanzanian wireless internet service provider dedicated to delivering affordable, reliable and high-performance broadband solutions to communities where traditional wired infrastructure is limited or unavailable.
+      <PageHero
+        eyebrow={isSw ? "Kuhusu sisi" : "About us"}
+        title={isSw ? "Kuunganisha jamii kwa intaneti ya kuaminika." : "Connecting communities with dependable internet access."}
+      >
+        {isSw
+          ? "SkyArt Networks Limited ni mtoa huduma wa intaneti wa wireless nchini Tanzania, tukitoa suluhisho za broadband nafuu, za kuaminika na zenye utendaji wa juu kwa jamii zenye miundombinu hafifu ya waya."
+          : "SkyArt Networks Limited is a Tanzanian wireless internet service provider dedicated to delivering affordable, reliable and high-performance broadband solutions to communities where traditional wired infrastructure is limited or unavailable."}
       </PageHero>
 
       <section className="section-py">
@@ -47,7 +63,10 @@ function AboutPage() {
 
       <section className="section-py bg-surface">
         <div className="container-page">
-          <SectionHeading eyebrow="Core values" title="The values that guide our work" />
+          <SectionHeading
+            eyebrow={isSw ? "Maadili ya msingi" : "Core values"}
+            title={isSw ? "Maadili yanayoongoza kazi yetu" : "The values that guide our work"}
+          />
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             {values.map((v) => (
               <Card key={v.title} className="p-6">
@@ -61,12 +80,17 @@ function AboutPage() {
 
       <section className="section-py">
         <div className="container-page">
-          <SectionHeading eyebrow="Our footprint" title="Growing from Dar es Salaam with a nationwide vision" />
+          <SectionHeading
+            eyebrow={isSw ? "Uenezi wetu" : "Our footprint"}
+            title={isSw ? "Tunakua kutoka Dar es Salaam kuelekea taifa zima" : "Growing from Dar es Salaam with a nationwide vision"}
+          />
           <p className="mt-4 max-w-3xl text-muted-foreground">
-            SkyArt Networks Limited is beginning in Dar es Salaam and expanding its network across the city with a long-term plan to extend reliable internet services across Tanzania.
+            {isSw
+              ? "SkyArt Networks Limited imeanza Dar es Salaam na inaendelea kupanua mtandao wake jijini kwa mpango wa muda mrefu wa kusambaza intaneti ya kuaminika kote Tanzania."
+              : "SkyArt Networks Limited is beginning in Dar es Salaam and expanding its network across the city with a long-term plan to extend reliable internet services across Tanzania."}
           </p>
           <div className="mt-12 text-center">
-            <Button asChild size="lg"><Link to="/coverage">View our coverage</Link></Button>
+            <Button asChild size="lg"><Link to="/coverage">{isSw ? "Angalia maeneo tunapofikia" : "View our coverage"}</Link></Button>
           </div>
         </div>
       </section>

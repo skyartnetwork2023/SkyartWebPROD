@@ -3,14 +3,17 @@ import { useEffect, useState } from "react";
 import { LayoutDashboard, LogIn, Menu, Moon, Sun, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { nav, site } from "@/lib/site-data";
 import { useTheme } from "@/components/theme-provider";
 import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/components/language-provider";
+import { useSiteContent } from "@/hooks/use-site-content";
 
 export function SiteHeader() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggle } = useTheme();
+  const { locale, setLocale, messages } = useLanguage();
+  const { site, nav } = useSiteContent();
   const { user } = useSession();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -55,40 +58,60 @@ export function SiteHeader() {
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {item.label}
+                {messages.nav[item.href] ?? item.label}
               </Link>
             );
           })}
         </nav>
 
         <div className="flex items-center gap-2">
+          <div className="hidden items-center rounded-md border p-0.5 md:flex" aria-label={messages.language}>
+            <Button
+              variant={locale === "en" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setLocale("en")}
+              aria-label={messages.english}
+            >
+              EN
+            </Button>
+            <Button
+              variant={locale === "sw" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setLocale("sw")}
+              aria-label={messages.swahili}
+            >
+              SW
+            </Button>
+          </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={toggle}
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={theme === "dark" ? messages.switchToLight : messages.switchToDark}
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
           <Button asChild variant="ghost" className="hidden md:inline-flex">
-            <Link to="/contact">Request a Quote</Link>
+            <Link to="/contact">{messages.requestQuote}</Link>
           </Button>
           {user ? (
             <Button asChild variant="outline" className="hidden md:inline-flex">
-              <Link to="/admin"><LayoutDashboard className="mr-1 h-4 w-4" /> Admin</Link>
+              <Link to="/admin"><LayoutDashboard className="mr-1 h-4 w-4" /> {messages.admin}</Link>
             </Button>
           ) : (
-            <Button asChild variant="ghost" size="icon" className="hidden md:inline-flex" aria-label="Sign in">
+            <Button asChild variant="ghost" size="icon" className="hidden md:inline-flex" aria-label={messages.signIn}>
               <Link to="/auth"><LogIn className="h-4 w-4" /></Link>
             </Button>
           )}
           <Button asChild className="hidden shadow-[var(--shadow-elegant)] md:inline-flex">
-            <Link to="/packages">Get Connected</Link>
+            <Link to="/packages">{messages.getConnected}</Link>
           </Button>
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="xl:hidden" aria-label="Open menu">
+              <Button variant="ghost" size="icon" className="xl:hidden" aria-label={messages.openMenu}>
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -108,13 +131,29 @@ export function SiteHeader() {
                         : "text-foreground hover:bg-accent",
                     )}
                   >
-                    {item.label}
+                    {messages.nav[item.href] ?? item.label}
                   </Link>
                 ))}
               </nav>
+              <div className="mt-4 flex items-center gap-2">
+                <Button
+                  variant={locale === "en" ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => setLocale("en")}
+                >
+                  EN
+                </Button>
+                <Button
+                  variant={locale === "sw" ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => setLocale("sw")}
+                >
+                  SW
+                </Button>
+              </div>
               <div className="mt-6 flex flex-col gap-2">
-                <Button asChild variant="outline"><Link to="/contact">Request a Quote</Link></Button>
-                <Button asChild><Link to="/packages">Get Connected</Link></Button>
+                <Button asChild variant="outline"><Link to="/contact">{messages.requestQuote}</Link></Button>
+                <Button asChild><Link to="/packages">{messages.getConnected}</Link></Button>
               </div>
             </SheetContent>
           </Sheet>

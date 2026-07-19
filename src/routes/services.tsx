@@ -4,9 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { PageHero } from "@/components/page-hero";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { services as fallbackServices, site } from "@/lib/site-data";
+import { site } from "@/lib/site-data";
 import { listSectionPublic } from "@/lib/site-sections.functions";
 import { iconByName } from "@/lib/site-icons";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/services")({
   head: () => ({
@@ -25,6 +27,10 @@ export const Route = createFileRoute("/services")({
 type ServiceItem = { slug: string; title: string; Icon: ReturnType<typeof iconByName>; blurb: string };
 
 function ServicesPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { services: fallbackServices } = useSiteContent();
+
   const { data: rows } = useQuery({
     queryKey: ["public-section", "services"],
     queryFn: () => listSectionPublic({ data: { section: "services" } }),
@@ -42,8 +48,13 @@ function ServicesPage() {
     : fallbackServices.map((s) => ({ slug: s.slug, title: s.title, Icon: s.icon, blurb: s.blurb }));
   return (
     <>
-      <PageHero eyebrow="Services" title="Reliable internet services for every connection need.">
-        SkyArt Networks Limited delivers wireless broadband and connectivity solutions designed to support homes, businesses, institutions and communities with dependable performance.
+      <PageHero
+        eyebrow={isSw ? "Huduma" : "Services"}
+        title={isSw ? "Huduma za intaneti za kuaminika kwa kila hitaji." : "Reliable internet services for every connection need."}
+      >
+        {isSw
+          ? "SkyArt Networks Limited hutoa broadband ya wireless na suluhisho za muunganisho kwa nyumba, biashara, taasisi na jamii kwa utendaji wa kuaminika."
+          : "SkyArt Networks Limited delivers wireless broadband and connectivity solutions designed to support homes, businesses, institutions and communities with dependable performance."}
       </PageHero>
 
       <section className="section-py">
@@ -57,18 +68,20 @@ function ServicesPage() {
                 <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
                 <p className="mt-2 flex-1 text-sm text-muted-foreground">{blurb}</p>
                 <Link to="/contact" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:gap-2 transition-all">
-                  Talk to us <ArrowRight className="h-3.5 w-3.5" />
+                  {isSw ? "Ongea nasi" : "Talk to us"} <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </Card>
             ))}
           </div>
 
           <Card className="mt-14 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-8 text-center md:p-12">
-            <h2 className="font-display text-2xl font-bold md:text-3xl">Need a tailored connectivity solution?</h2>
+            <h2 className="font-display text-2xl font-bold md:text-3xl">{isSw ? "Unahitaji suluhisho maalum la muunganisho?" : "Need a tailored connectivity solution?"}</h2>
             <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              Our team can help you identify the right internet service for your home, office, school, community or business operation.
+              {isSw
+                ? "Timu yetu inaweza kukusaidia kuchagua huduma sahihi ya intaneti kwa nyumba, ofisi, shule, jamii au biashara yako."
+                : "Our team can help you identify the right internet service for your home, office, school, community or business operation."}
             </p>
-            <Button asChild className="mt-6" size="lg"><Link to="/contact">Request a Quote</Link></Button>
+            <Button asChild className="mt-6" size="lg"><Link to="/contact">{isSw ? "Omba Bei" : "Request a Quote"}</Link></Button>
           </Card>
         </div>
       </section>

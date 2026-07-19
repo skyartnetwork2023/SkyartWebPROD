@@ -1,5 +1,6 @@
 // Central content source for the marketing site. Swap for a CMS later.
 import type { LucideIcon } from "lucide-react";
+import type { Locale } from "@/lib/i18n";
 import {
   Wifi, Building2, Cable, Radio, Router, ShieldCheck, PhoneCall, Cloud,
   Camera, Network, Activity, Wrench, Home, GraduationCap, HeartPulse,
@@ -206,4 +207,301 @@ export const values = [
 
 export function formatTZS(n: number) {
   return "TZS " + new Intl.NumberFormat("en-US").format(n);
+}
+
+export type LocalizedSiteData = {
+  site: typeof site;
+  nav: typeof nav;
+  services: Service[];
+  packages: Package[];
+  streetHotspotPackages: StreetHotspotPackage[];
+  solutions: Solution[];
+  stats: typeof stats;
+  customerSegments: typeof customerSegments;
+  technologies: typeof technologies;
+  portfolio: typeof portfolio;
+  coverage: typeof coverage;
+  posts: typeof posts;
+  jobs: typeof jobs;
+  faqs: typeof faqs;
+  partners: typeof partners;
+  milestones: typeof milestones;
+  values: typeof values;
+};
+ 
+const swSite: typeof site = {
+  ...site,
+  tagline: "Intaneti ya haraka, ya kuaminika na nafuu kwa nyumba na biashara.",
+  description:
+    "SkyArt Networks Limited ni mtoa huduma wa intaneti wa wireless nchini Tanzania anayetoa muunganisho wa broadband wa kuaminika kwa nyumba, biashara, taasisi na jamii.",
+  hours: "Jumatatu-Jumamosi · 8:00 - 20:00 · Msaada unapatikana saa 24/7",
+};
+
+const swNavLabels: Record<string, string> = {
+  "/": "Nyumbani",
+  "/about": "Kuhusu",
+  "/services": "Huduma",
+  "/packages": "Vifurushi",
+  "/products": "Bidhaa",
+  "/solutions": "Suluhisho",
+  "/portfolio": "Miradi",
+  "/coverage": "Ufikivu",
+  "/careers": "Ajira",
+  "/faq": "Maswali",
+  "/blog": "Blogu",
+  "/contact": "Wasiliana",
+};
+
+const swNav = nav.map((item) => ({ ...item, label: swNavLabels[item.href] ?? item.label }));
+
+const swServicesBySlug: Record<string, { title: string; blurb: string }> = {
+  "residential-internet": {
+    title: "Intaneti ya Nyumbani",
+    blurb: "Muunganisho wa broadband wa kuaminika ulioundwa kwa nyumba, vyumba na jamii za makazi.",
+  },
+  "business-internet": {
+    title: "Intaneti ya Biashara",
+    blurb: "Suluhisho thabiti za intaneti ya kasi ya juu zinazosaidia biashara kufanya kazi kwa ufanisi.",
+  },
+  "public-wifi-hotspots": {
+    title: "Hotspot za Wi-Fi za Umma",
+    blurb: "Huduma nafuu ya intaneti ya umma kwa jamii na maeneo yenye watu wengi.",
+  },
+  "fixed-wireless-access": {
+    title: "Fixed Wireless Access",
+    blurb: "Broadband maalum ya wireless kwa wateja wanaohitaji bandwidth kubwa na utendaji thabiti.",
+  },
+  "fiber-connectivity": {
+    title: "Muunganisho wa Fiber",
+    blurb: "Suluhisho za fiber za kisasa ikiwemo FTTH, FTTP na FTTB.",
+  },
+  "network-infrastructure": {
+    title: "Miundombinu ya Mtandao",
+    blurb: "Upangaji, utekelezaji, ufuatiliaji, uboreshaji na matengenezo ya mitandao ya wireless.",
+  },
+  "rural-connectivity": {
+    title: "Muunganisho Vijijini",
+    blurb: "Kutoa huduma ya intaneti kwa jamii zisizohudumiwa vya kutosha na maeneo ya mbali kote Tanzania.",
+  },
+};
+
+const swServices = services.map((item) => {
+  const translated = swServicesBySlug[item.slug];
+  return translated ? { ...item, ...translated } : item;
+});
+
+const swStats = [
+  { value: "Muunganisho wa Kuaminika", label: "Utendaji wa broadband unaotegemewa kwa nyumba, biashara na taasisi." },
+  { value: "Vifurushi Nafuu", label: "Suluhisho zinazobadilika kulingana na bajeti za kila siku na mipango ya ukuaji." },
+  { value: "Teknolojia ya Kisasa ya Wireless", label: "Mifumo ya wireless yenye utendaji wa juu kwa kasi na uthabiti." },
+  { value: "Mtandao Unaopanuka", label: "Tunapanuka Dar es Salaam na maeneo mengine kwa mpango madhubuti wa usambazaji." },
+  { value: "Msaada wa Kitaalamu", label: "Timu zenye ujuzi zinazotoa mwongozo wa kuaminika na msaada wa kiufundi." },
+  { value: "Upanuzi Tanzania Nzima", label: "Dira ya muda mrefu ya kuunganisha jamii nyingi zaidi kwa intaneti bora." },
+] as const;
+
+const swCustomerSegments = [
+  { title: "Nyumba na Vyumba", icon: Home, blurb: "Intaneti ya kasi na kuaminika kwa burudani, masomo na kazi za mbali." },
+  { title: "Biashara Ndogo", icon: Briefcase, blurb: "Muunganisho thabiti unaoendelea kuwezesha shughuli za biashara na wateja wako." },
+  { title: "Taasisi za Elimu", icon: School, blurb: "Huduma ya kuaminika kwa madarasa, usimamizi na ujifunzaji wa kidijitali." },
+  { title: "Ofisi za Kampuni", icon: Building2, blurb: "Broadband ya utendaji wa juu kwa tija, mawasiliano na huduma za cloud." },
+  { title: "Taasisi za Serikali", icon: Landmark, blurb: "Muunganisho salama na unaoweza kupanuka kwa huduma za umma." },
+  { title: "Watumiaji wa Wi-Fi ya Umma", icon: HandHeart, blurb: "Huduma nafuu ya intaneti inayosaidia jamii na maeneo ya umma." },
+] as const;
+
+const swSolutionsBySlug: Record<string, { title: string; challenge: string; answer: string }> = {
+  home: {
+    title: "Watumiaji wa Nyumbani",
+    challenge: "Kasi kupungua jioni, video kukwama na Wi-Fi kutofika kila chumba.",
+    answer: "Fiber yenye kasi sawa pande zote, mesh Wi-Fi na msaada wa wazazi saa 24/7.",
+  },
+  "small-business": {
+    title: "Biashara Ndogo",
+    challenge: "Kukatika kwa mtandao hupunguza mauzo, VoIP hukatika na POS huzima.",
+    answer: "Fiber ya biashara yenye SLA na failover ya 4G.",
+  },
+  enterprise: {
+    title: "Makampuni Makubwa",
+    challenge: "Mahitaji ya multi-site MPLS, cloud direct-connect na remote access salama.",
+    answer: "Dedicated fiber rings, SD-WAN na muunganisho wa BGP-multihomed.",
+  },
+  schools: {
+    title: "Shule",
+    challenge: "Bandwidth ya pamoja, usalama wa maudhui na maelfu ya vifaa.",
+    answer: "Managed Wi-Fi yenye content filtering na QoS kwa kila darasa.",
+  },
+  universities: {
+    title: "Vyuo Vikuu",
+    challenge: "Mahitaji ya bandwidth ya utafiti, Wi-Fi ya kampasi na hosteli.",
+    answer: "Backbone ya kampasi ya 10G+ pamoja na eduroam.",
+  },
+  hospitals: {
+    title: "Hospitali",
+    challenge: "Upatikanaji wa saa 24/7 kwa EMR, imaging na telemedicine.",
+    answer: "Fiber rings zenye redundancy na VLAN maalum za huduma za kliniki.",
+  },
+  hotels: {
+    title: "Hoteli",
+    challenge: "Wi-Fi ya wageni inayofanya kazi vizuri kuanzia lobby hadi vyumba vya juu.",
+    answer: "High-density Wi-Fi 6 yenye captive portal na PMS billing.",
+  },
+  government: {
+    title: "Serikali",
+    challenge: "Muunganisho salama, unaokidhi taratibu na unaodhibitiwa ndani ya nchi.",
+    answer: "Private fiber circuits zenye encryption na ripoti zinazokaguliwa.",
+  },
+  ngos: {
+    title: "NGO",
+    challenge: "Muunganisho wa maeneo ya mbali kwa bajeti ndogo.",
+    answer: "Mchanganyiko wa fiber + LTE kwa bei rafiki kwa taasisi za kijamii.",
+  },
+};
+
+const swSolutions = solutions.map((item) => {
+  const translated = swSolutionsBySlug[item.slug];
+  return translated ? { ...item, ...translated } : item;
+});
+
+const swCoverage = coverage.map((item) => {
+  const type = item.type === "Wireless Broadband"
+    ? "Wireless Broadband"
+    : item.type === "Wireless + Fiber"
+      ? "Wireless + Fiber"
+      : item.type;
+  const availability = item.availability === "Active"
+    ? "Inapatikana"
+    : item.availability === "Planned"
+      ? "Imepangwa"
+      : item.availability;
+  return { ...item, type, availability };
+});
+
+const swPostsBySlug: Record<string, { title: string; category: string; excerpt: string }> = {
+  "fiber-vs-wireless": {
+    title: "Fiber au Wireless: Kipi kinafaa kwa biashara yako?",
+    category: "Mwongozo",
+    excerpt: "Ulinganisho rahisi kukusaidia kuchagua teknolojia sahihi ya last-mile.",
+  },
+  "wifi-6-explained": {
+    title: "Wi-Fi 6 imeelezwa, na lini inahitajika kweli",
+    category: "Teknolojia",
+    excerpt: "Wi-Fi 6 si namba tu. Hapa ndipo kuboresha kunalipa.",
+  },
+  "ddos-small-business": {
+    title: "Tabia 5 za usalama mtandaoni kwa biashara ndogo",
+    category: "Usalama Mtandaoni",
+    excerpt: "Huhitaji SOC kuilinda biashara yako. Anza na hatua hizi tano.",
+  },
+};
+
+const swPosts = posts.map((item) => {
+  const translated = swPostsBySlug[item.slug];
+  return translated ? { ...item, ...translated } : item;
+});
+
+const swFaqsByQuestion: Record<string, { category: string; q: string; a: string }> = {
+  "How long does installation take?": {
+    category: "Ufungaji",
+    q: "Ufungaji unachukua muda gani?",
+    a: "Ufungaji mwingi wa nyumbani hukamilika ndani ya saa 48 baada ya uanzishaji. Biashara hupangiwa ndani ya siku 5-7 za kazi.",
+  },
+  "What payment methods do you accept?": {
+    category: "Malipo",
+    q: "Mnakubali njia zipi za malipo?",
+    a: "M-Pesa, Tigo Pesa, Airtel Money, benki, Visa/Mastercard na fedha taslimu ofisini.",
+  },
+  "Can I upgrade or downgrade my package?": {
+    category: "Vifurushi",
+    q: "Naweza kubadili kifurushi changu?",
+    a: "Ndiyo, muda wowote kupitia portal ya mteja. Kupandisha huanza mara moja; kushusha huanza mzunguko unaofuata wa bili.",
+  },
+  "Is support really 24/7?": {
+    category: "Msaada wa Kiufundi",
+    q: "Msaada ni saa 24/7 kweli?",
+    a: "Ndiyo. NOC yetu inafanya kazi saa zote, piga simu, WhatsApp au fungua tiketi.",
+  },
+};
+
+const swFaqs = faqs.map((item) => swFaqsByQuestion[item.q] ? { ...item, ...swFaqsByQuestion[item.q] } : item);
+
+const swValuesByTitle: Record<string, { title: string; body: string }> = {
+  Reliability: {
+    title: "Utegemewaji",
+    body: "Tunajenga muunganisho unaoweza kutegemewa kwa kazi, elimu, mawasiliano na maisha ya kila siku.",
+  },
+  Innovation: {
+    title: "Ubunifu",
+    body: "Tunachanganya teknolojia za kisasa za wireless na upangaji makini wa mtandao kutoa huduma bora.",
+  },
+  "Customer First": {
+    title: "Mteja Kwanza",
+    body: "Kila suluhisho huundwa kulingana na mahitaji ya watu na taasisi tunazohudumia.",
+  },
+  Affordability: {
+    title: "Uwezo wa Kumudu",
+    body: "Tunajitahidi kufanya intaneti bora iweze kupatikana kwa jamii nyingi zaidi.",
+  },
+  Integrity: {
+    title: "Uadilifu",
+    body: "Tunafanya kazi kwa uwazi, uwajibikaji na heshima katika kila tunachotoa.",
+  },
+};
+
+const swValues = values.map((item) => swValuesByTitle[item.title] ? { ...item, ...swValuesByTitle[item.title] } : item);
+
+const swPortfolioByTitle: Record<string, { title: string; result: string }> = {
+  "Baraka Health Multi-Site Fiber": {
+    title: "Baraka Health Multi-Site Fiber",
+    result: "Kliniki tatu zimeunganishwa kwenye ring ya 1G, uptime 99.99%.",
+  },
+  "Sunrise Lodge Guest Wi-Fi": {
+    title: "Sunrise Lodge Guest Wi-Fi",
+    result: "Access points 220, ongezeko la alama 38 za NPS ya Wi-Fi ya wageni.",
+  },
+};
+
+const swPortfolio = portfolio.map((item) => swPortfolioByTitle[item.title] ? { ...item, ...swPortfolioByTitle[item.title] } : item);
+
+export const siteContentByLocale: Record<Locale, LocalizedSiteData> = {
+  en: {
+    site,
+    nav,
+    services,
+    packages,
+    streetHotspotPackages,
+    solutions,
+    stats,
+    customerSegments,
+    technologies,
+    portfolio,
+    coverage,
+    posts,
+    jobs,
+    faqs,
+    partners,
+    milestones,
+    values,
+  },
+  sw: {
+    site: swSite,
+    nav: swNav,
+    services: swServices,
+    packages,
+    streetHotspotPackages,
+    solutions: swSolutions,
+    stats: swStats,
+    customerSegments: swCustomerSegments,
+    technologies,
+    portfolio: swPortfolio,
+    coverage: swCoverage,
+    posts: swPosts,
+    jobs,
+    faqs: swFaqs,
+    partners,
+    milestones,
+    values: swValues,
+  },
+};
+
+export function getLocalizedSiteData(locale: Locale): LocalizedSiteData {
+  return siteContentByLocale[locale] ?? siteContentByLocale.en;
 }

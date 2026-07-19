@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { site } from "@/lib/site-data";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -22,6 +24,9 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { site: localizedSite } = useSiteContent();
   const navigate = useNavigate();
   const search = useRouterState({ select: (s) => s.location.search }) as unknown as Record<string, string>;
   const redirectTo = typeof search?.redirect === "string" && search.redirect.startsWith("/") ? search.redirect : "/admin";
@@ -49,15 +54,15 @@ function AuthPage() {
           });
           
           if (!error && data.session) {
-            toast.success("Email confirmed! Signing you in...");
+            toast.success(isSw ? "Barua pepe imethibitishwa. Tunaingia..." : "Email confirmed! Signing you in...");
             // Clear the URL hash
             window.history.replaceState({}, document.title, window.location.pathname);
             navigate({ to: redirectTo });
           } else if (error) {
-            toast.error("Session setup failed: " + error.message);
+            toast.error((isSw ? "Uundaji wa session umeshindikana: " : "Session setup failed: ") + error.message);
           }
         } catch (err) {
-          toast.error("Error processing email confirmation");
+          toast.error(isSw ? "Hitilafu katika uthibitisho wa barua pepe" : "Error processing email confirmation");
         }
       })();
     }
@@ -73,7 +78,7 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Signed in");
+    toast.success(isSw ? "Umeingia" : "Signed in");
     navigate({ to: redirectTo });
   }
 
@@ -91,7 +96,7 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created. Check your email if confirmation is required.");
+    toast.success(isSw ? "Akaunti imeundwa. Angalia barua pepe yako kama uthibitisho unahitajika." : "Account created. Check your email if confirmation is required.");
   }
 
   async function google() {
@@ -113,24 +118,24 @@ function AuthPage() {
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
             <Zap className="h-5 w-5" />
           </span>
-          {site.name}
+          {localizedSite.name}
         </Link>
-        <h1 className="text-center font-display text-2xl font-semibold">Admin Portal</h1>
+        <h1 className="text-center font-display text-2xl font-semibold">{isSw ? "Lango la Msimamizi" : "Admin Portal"}</h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
-          Sign in to manage products, careers and content.
+          {isSw ? "Ingia kusimamia bidhaa, ajira na maudhui." : "Sign in to manage products, careers and content."}
         </p>
 
         <Button variant="outline" className="mt-6 w-full" onClick={google} type="button">
-          Continue with Google
+          {isSw ? "Endelea na Google" : "Continue with Google"}
         </Button>
         <div className="my-4 flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+          <span className="h-px flex-1 bg-border" /> {isSw ? "au" : "or"} <span className="h-px flex-1 bg-border" />
         </div>
 
         <Tabs defaultValue="signin">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign in</TabsTrigger>
-            <TabsTrigger value="signup">Create account</TabsTrigger>
+            <TabsTrigger value="signin">{isSw ? "Ingia" : "Sign in"}</TabsTrigger>
+            <TabsTrigger value="signup">{isSw ? "Fungua akaunti" : "Create account"}</TabsTrigger>
           </TabsList>
           <TabsContent value="signin">
             <form onSubmit={signIn} className="space-y-3 pt-2">
@@ -141,18 +146,18 @@ function AuthPage() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="si-pass">Password</Label>
+                <Label htmlFor="si-pass">{isSw ? "Nenosiri" : "Password"}</Label>
                 <div className="relative"><Lock className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input id="si-pass" name="password" type="password" required minLength={6} className="pl-9" autoComplete="current-password" />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button>
+              <Button type="submit" className="w-full" disabled={loading}>{loading ? (isSw ? "Inaingia..." : "Signing in...") : (isSw ? "Ingia" : "Sign in")}</Button>
             </form>
           </TabsContent>
           <TabsContent value="signup">
             <form onSubmit={signUp} className="space-y-3 pt-2">
               <div>
-                <Label htmlFor="su-name">Full name</Label>
+                <Label htmlFor="su-name">{isSw ? "Jina kamili" : "Full name"}</Label>
                 <div className="relative"><User className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input id="su-name" name="full_name" required className="pl-9" />
                 </div>
@@ -164,14 +169,14 @@ function AuthPage() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="su-pass">Password</Label>
+                <Label htmlFor="su-pass">{isSw ? "Nenosiri" : "Password"}</Label>
                 <div className="relative"><Lock className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input id="su-pass" name="password" type="password" required minLength={8} className="pl-9" autoComplete="new-password" />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Creating…" : "Create account"}</Button>
+              <Button type="submit" className="w-full" disabled={loading}>{loading ? (isSw ? "Inaunda..." : "Creating...") : (isSw ? "Fungua akaunti" : "Create account")}</Button>
               <p className="text-center text-xs text-muted-foreground">
-                The first user to sign up automatically becomes Super Admin.
+                {isSw ? "Mtumiaji wa kwanza kujiandikisha anakuwa Super Admin moja kwa moja." : "The first user to sign up automatically becomes Super Admin."}
               </p>
             </form>
           </TabsContent>

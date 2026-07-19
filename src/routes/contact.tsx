@@ -13,6 +13,8 @@ import { site } from "@/lib/site-data";
 import { toast } from "sonner";
 import { submitContactMessage } from "@/lib/contact.functions";
 import { listSectionPublic } from "@/lib/site-sections.functions";
+import { useSiteContent } from "@/hooks/use-site-content";
+import { useLanguage } from "@/components/language-provider";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -29,6 +31,9 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const { locale } = useLanguage();
+  const isSw = locale === "sw";
+  const { site: localizedSite } = useSiteContent();
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -36,11 +41,11 @@ function ContactPage() {
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
     if (!data.name || !data.email || !data.message) {
-      toast.error("Please fill in name, email and message.");
+      toast.error(isSw ? "Tafadhali jaza jina, barua pepe na ujumbe." : "Please fill in name, email and message.");
       return;
     }
     if (!data.email.includes("@")) {
-      toast.error("Please enter a valid email.");
+      toast.error(isSw ? "Tafadhali weka barua pepe sahihi." : "Please enter a valid email.");
       return;
     }
     setLoading(true);
@@ -55,9 +60,9 @@ function ContactPage() {
         },
       });
       form.reset();
-      toast.success("Message sent. We'll be in touch within one business day.");
+      toast.success(isSw ? "Ujumbe umetumwa. Tutakujibu ndani ya siku moja ya kazi." : "Message sent. We'll be in touch within one business day.");
     } catch (err) {
-      toast.error((err as Error).message || "Could not send your message.");
+      toast.error((err as Error).message || (isSw ? "Imeshindikana kutuma ujumbe wako." : "Could not send your message."));
     } finally {
       setLoading(false);
     }
@@ -65,27 +70,29 @@ function ContactPage() {
 
   return (
     <>
-      <PageHero eyebrow="Contact" title="We’re ready to help you get connected.">
-        Reach out to SkyArt Networks Limited for service enquiries, technical support and quote requests.
+      <PageHero eyebrow={isSw ? "Mawasiliano" : "Contact"} title={isSw ? "Tuko tayari kukusaidia kuunganishwa." : "We're ready to help you get connected."}>
+        {isSw
+          ? `Wasiliana na ${localizedSite.name} kwa maswali ya huduma, msaada wa kiufundi na maombi ya bei.`
+          : `Reach out to ${localizedSite.name} for service enquiries, technical support and quote requests.`}
       </PageHero>
 
       <section className="section-py">
         <div className="container-page grid gap-8 lg:grid-cols-[1.2fr_2fr]">
-          <ContactCards />
+          <ContactCards siteData={localizedSite} isSw={isSw} />
 
           <div className="space-y-6">
 
             <Card className="p-6 md:p-8">
               <h2 className="font-display text-2xl font-bold">Send us a message</h2>
-              <p className="mt-2 text-sm text-muted-foreground">We respond within one business day.</p>
+              <p className="mt-2 text-sm text-muted-foreground">{isSw ? "Tunajibu ndani ya siku moja ya kazi." : "We respond within one business day."}</p>
               <form onSubmit={onSubmit} className="mt-6 grid gap-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Full name *</Label>
+                    <Label htmlFor="name">{isSw ? "Jina kamili" : "Full name"} *</Label>
                     <Input id="name" name="name" required maxLength={80} />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="company">Company (optional)</Label>
+                    <Label htmlFor="company">{isSw ? "Kampuni (si lazima)" : "Company (optional)"}</Label>
                     <Input id="company" name="company" maxLength={80} />
                   </div>
                 </div>
@@ -95,32 +102,32 @@ function ContactPage() {
                     <Input id="email" name="email" type="email" required maxLength={120} />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone">{isSw ? "Simu" : "Phone"}</Label>
                     <Input id="phone" name="phone" type="tel" maxLength={30} />
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="topic">What can we help with?</Label>
+                  <Label htmlFor="topic">{isSw ? "Tukusaidie nini?" : "What can we help with?"}</Label>
                   <Select name="topic" defaultValue="sales">
                     <SelectTrigger id="topic"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sales">New connection / sales</SelectItem>
-                      <SelectItem value="support">Technical support</SelectItem>
-                      <SelectItem value="billing">Billing enquiry</SelectItem>
+                      <SelectItem value="sales">{isSw ? "Uunganishaji mpya / mauzo" : "New connection / sales"}</SelectItem>
+                      <SelectItem value="support">{isSw ? "Msaada wa kiufundi" : "Technical support"}</SelectItem>
+                      <SelectItem value="billing">{isSw ? "Swali la malipo" : "Billing enquiry"}</SelectItem>
                       <SelectItem value="partnership">Partnership</SelectItem>
-                      <SelectItem value="press">Press / media</SelectItem>
+                      <SelectItem value="press">{isSw ? "Vyombo vya habari" : "Press / media"}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="message">Message *</Label>
-                  <Textarea id="message" name="message" required rows={5} maxLength={1000} placeholder="Tell us what you need…" />
+                  <Label htmlFor="message">{isSw ? "Ujumbe" : "Message"} *</Label>
+                  <Textarea id="message" name="message" required rows={5} maxLength={1000} placeholder={isSw ? "Tuambie unachohitaji..." : "Tell us what you need..."} />
                 </div>
-                <Button type="submit" size="lg" className="mt-2" disabled={loading}>{loading ? "Sending…" : "Send message"}</Button>
+                <Button type="submit" size="lg" className="mt-2" disabled={loading}>{loading ? (isSw ? "Inatuma..." : "Sending...") : (isSw ? "Tuma ujumbe" : "Send message")}</Button>
               </form>
             </Card>
 
-            <MapEmbed />
+            <MapEmbed isSw={isSw} />
           </div>
         </div>
       </section>
@@ -151,7 +158,7 @@ function coordEmbed(lat?: string | number, lng?: string | number, zoom?: string 
   return `https://maps.google.com/maps?q=${lat},${lng}&z=${z}&hl=en&output=embed`;
 }
 
-function MapEmbed() {
+function MapEmbed({ isSw }: { isSw: boolean }) {
   const { data: rows } = useQuery({
     queryKey: ["public-section", "map"],
     queryFn: () => listSectionPublic({ data: { section: "map" } }),
@@ -184,8 +191,8 @@ function MapEmbed() {
     <Card className="flex aspect-[16/8] items-center justify-center overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-transparent">
       <div className="text-center">
         <MapPin className="mx-auto h-10 w-10 text-primary" />
-        <p className="mt-3 font-display text-lg font-semibold">Visit our office</p>
-        <p className="mt-1 text-xs text-muted-foreground">Add coordinates or a Google Maps URL in Admin → Site content → Map embed.</p>
+        <p className="mt-3 font-display text-lg font-semibold">{isSw ? "Tembelea ofisi yetu" : "Visit our office"}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{isSw ? "Ongeza coordinates au URL ya Google Maps kwenye Admin -> Site content -> Map embed." : "Add coordinates or a Google Maps URL in Admin -> Site content -> Map embed."}</p>
       </div>
     </Card>
   );
@@ -193,7 +200,7 @@ function MapEmbed() {
 
 const ICONS: Record<string, typeof MapPin> = { address: MapPin, phone: Phone, email: Mail, hours: Clock };
 
-function ContactCards() {
+function ContactCards({ siteData, isSw }: { siteData: typeof site; isSw: boolean }) {
   const { data: rows } = useQuery({
     queryKey: ["public-section", "contact"],
     queryFn: () => listSectionPublic({ data: { section: "contact" } }),
@@ -210,10 +217,10 @@ function ContactCards() {
   });
 
   const defaults: Entry[] = [
-    { kind: "address", label: "Head office", value: site.address },
-    { kind: "phone", label: "Phone", value: site.phone },
-    { kind: "email", label: "Email", value: site.email },
-    { kind: "hours", label: "Business hours", value: site.hours },
+    { kind: "address", label: isSw ? "Ofisi kuu" : "Head office", value: siteData.address },
+    { kind: "phone", label: isSw ? "Simu" : "Phone", value: siteData.phone },
+    { kind: "email", label: "Email", value: siteData.email },
+    { kind: "hours", label: isSw ? "Saa za kazi" : "Business hours", value: siteData.hours },
   ];
   const items = entries.length > 0 ? entries : defaults;
 
