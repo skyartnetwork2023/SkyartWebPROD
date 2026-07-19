@@ -43,22 +43,28 @@ const ROLE_LABEL: Record<RoleV, string> = {
 
 function UsersAdmin() {
   const qc = useQueryClient();
+  const isBrowser = typeof window !== "undefined";
   const [search, setSearch] = useState("");
   const [pending, setPending] = useState<Record<string, RoleV>>({});
   const [addOpen, setAddOpen] = useState(false);
   const [preEmail, setPreEmail] = useState("");
   const [preRole, setPreRole] = useState<RoleV>("content_manager");
 
-  const { data: me } = useQuery({ queryKey: ["my-roles"], queryFn: () => getMyRoles() });
+  const { data: me } = useQuery({
+    queryKey: ["my-roles"],
+    queryFn: () => getMyRoles(),
+    enabled: isBrowser,
+  });
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: () => listUsersWithRoles(),
+    enabled: isBrowser,
   });
   const isSuper = me?.isSuperAdmin ?? false;
   const { data: preapproved = [], isLoading: preLoading } = useQuery({
     queryKey: ["preapproved-roles"],
     queryFn: () => listPreapprovedRoles(),
-    enabled: isSuper,
+    enabled: isBrowser && isSuper,
   });
 
   const grant = useMutation({

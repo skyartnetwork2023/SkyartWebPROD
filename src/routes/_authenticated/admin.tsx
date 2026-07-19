@@ -14,9 +14,11 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 function AdminLayout() {
   const navigate = useNavigate();
+  const isBrowser = typeof window !== "undefined";
   const { data, isLoading, error } = useQuery({
     queryKey: ["my-roles"],
     queryFn: () => getMyRoles(),
+    enabled: isBrowser,
   });
 
   useEffect(() => {

@@ -23,15 +23,21 @@ const ENTITY_TYPES = ["all", "contact_message", "user_role", "product", "job", "
 
 function AuditPage() {
   const qc = useQueryClient();
+  const isBrowser = typeof window !== "undefined";
   const [search, setSearch] = useState("");
   const [entity, setEntity] = useState<(typeof ENTITY_TYPES)[number]>("all");
 
-  const { data: roleInfo } = useQuery({ queryKey: ["my-roles"], queryFn: () => getMyRoles() });
+  const { data: roleInfo } = useQuery({
+    queryKey: ["my-roles"],
+    queryFn: () => getMyRoles(),
+    enabled: isBrowser,
+  });
   const isSuper = !!roleInfo?.isSuperAdmin;
 
   const { data, isLoading } = useQuery({
     queryKey: ["audit-logs", search, entity],
     queryFn: () => listAuditLogs({ data: { search, entity_type: entity === "all" ? "" : entity } }),
+    enabled: isBrowser,
   });
 
   const del = useMutation({

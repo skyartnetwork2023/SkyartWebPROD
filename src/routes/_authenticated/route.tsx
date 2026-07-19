@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
+    if (typeof window === "undefined") {
+      return {};
+    }
+
     // First, let Supabase process any auth callback parameters in the URL
     const { data: sessionData } = await supabase.auth.getSession();
     
@@ -11,8 +15,7 @@ export const Route = createFileRoute("/_authenticated")({
     if (!sessionData.session) {
       const params = new URLSearchParams(location.search);
       if (params.has("access_token") || params.has("code")) {
-        // Supabase SDK should auto-process these, but let's give it a moment
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Supabase SDK should auto-process these; avoid hard waits during route resolution.
       }
     }
     
